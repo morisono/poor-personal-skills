@@ -1,0 +1,40 @@
+---
+name: template-skill
+description:
+license: Apache-2.0
+metadata:
+  author: you
+  version: 0.1.0
+---
+
+# <Skill Name>
+
+## Purpose
+<!-- operational objective, function and success criteria only. -->
+
+## Scope
+<!-- definitions, What includes/excludes, when to/not-to use -->
+
+### Constraints
+<!-- contract and failure boundaries. -->
+
+## Workflow
+<!-- assumptions, prerequisites, execution order and orchestration logic. -->
+
+### Activation
+<!-- trigger conditions, routing logic, exclusions. -->
+
+## Heuristics
+<!-- context management, ranking signals, scoring logic, tradeoffs. -->
+
+## Evaluation
+<!-- observable correctness criteria, common failure modes, fallback, recovery solution -->
+
+## Escalation
+<!-- when to stop, defer, or request clarification -->
+
+## Examples
+<!-- practical examples, failure modes, anti-patterns or edge cases. -->
+
+## References
+<!-- related link and short description, evidence, or escalation rules. -->
