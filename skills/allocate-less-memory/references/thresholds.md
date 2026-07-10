@@ -18,7 +18,4 @@ Terminate candidates:
 - stale MCP or indexer workers with no parent chain
 - a single runaway process when RSS dominates the session budget
 
-Escalation:
-- TERM first
-- wait briefly
-- KILL only if the process ignores termination
+Signal order (TERM → wait → KILL) is a constraint in SKILL.md; it applies at every threshold.
