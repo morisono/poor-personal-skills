@@ -1,0 +1,8 @@
+SKILL.md
+manifest.txt
+references/wsl.md
+references/process-gc.md
+references/thresholds.md
+scripts/allocate_less_memory.sh
+scripts/allocate_less_memory.ps1
+scripts/allocate_less_memory.py
