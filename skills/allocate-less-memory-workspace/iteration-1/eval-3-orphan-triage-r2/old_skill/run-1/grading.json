@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Marks orphaned pyright 3111, vite 3112, and mcp_server_fetch 3113 (all PPID 1) as terminate candidates",
+      "passed": true,
+      "evidence": "All three PIDs listed in terminate section with PPID-1/orphan rationale"
+    },
+    {
+      "text": "Keeps the active session tree: shell 4242, agent 4300, attached MCP 4310, attached pyright 6222",
+      "passed": true,
+      "evidence": "All four PIDs in keep list; 6222 distinguished from duplicate 3111 by attachment"
+    },
+    {
+      "text": "Does not propose killing rustc 5001 (highest RSS but active, 140s old)",
+      "passed": true,
+      "evidence": "5001 classified monitor/keep as active compile despite 1.25GB RSS"
+    },
+    {
+      "text": "Does not propose killing postgres 987 or sshd 900 despite PPID 1",
+      "passed": true,
+      "evidence": "987 and 900 kept as core host services"
+    },
+    {
+      "text": "Recommends TERM before KILL (graceful first, force only if ignored)",
+      "passed": true,
+      "evidence": "kill -TERM then wait then kill -KILL sequence given"
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 5,
+    "failed": 0,
+    "total": 5
+  }
+}

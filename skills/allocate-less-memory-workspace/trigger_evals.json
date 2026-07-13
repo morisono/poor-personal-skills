@@ -1,0 +1,22 @@
+[
+  {"query": "claude code just froze again and htop shows like 12 node processes eating 400mb each, most from sessions i closed hours ago. wsl is crawling", "should_trigger": true},
+  {"query": "vmmemWSL is at 14.8GB out of my 16GB cap in Task Manager and everything is sluggish. what do I do", "should_trigger": true},
+  {"query": "my agent session locked up the whole WSL vm this afternoon, second time this week. how do I stop this happening — i have a ton of helper processes running", "should_trigger": true},
+  {"query": "there are a bunch of pyright and mcp server processes with PPID 1 hanging around after I close my editor. safe to kill? which ones", "should_trigger": true},
+  {"query": "linux box with 8gb ram, long claude session + vite dev server + docker, MemAvailable is 200MB. help me get RAM back without losing my session", "should_trigger": true},
+  {"query": "WSLが何度も固まる。vmmemWSLがメモリを食い尽くしてるので常駐プロセスを減らしたい", "should_trigger": true},
+  {"query": "should i lower memory= in .wslconfig to 8GB so vmmem stops eating my laptop? swap is 0 right now", "should_trigger": true},
+  {"query": "here's my ps aux output, which of these can I kill to free memory? don't want to nuke my tmux or editor", "should_trigger": true},
+  {"query": "every time i run the coding agent overnight it leaves zombie npm dev servers behind and by morning the machine is unresponsive. want a cleanup step", "should_trigger": true},
+  {"query": "OOM killer took out my postgres in WSL while claude was indexing the repo. how do I keep memory headroom during agent sessions", "should_trigger": true},
+  {"query": "my python script uses 12GB loading this CSV with pandas, how can I allocate less memory", "should_trigger": false},
+  {"query": "how do I find a memory leak in my node express app, the heap keeps growing under load until it crashes", "should_trigger": false},
+  {"query": "C: drive is nearly full and my WSL vhdx is 200GB, what can I delete", "should_trigger": false},
+  {"query": "my docker container keeps getting OOMKilled in kubernetes, how should I set memory limits and requests", "should_trigger": false},
+  {"query": "how much RAM do I need to run a local 70B llama model with 4-bit quantization", "should_trigger": false},
+  {"query": "valgrind reports 'definitely lost' blocks in my C program, walk me through fixing them", "should_trigger": false},
+  {"query": "trying to reduce memory usage of my rust program — should I use Box, Rc, or an arena allocator here", "should_trigger": false},
+  {"query": "is wsl --shutdown before windows update better than just rebooting?", "should_trigger": false},
+  {"query": "my cargo build has been pinning all cores at 100% for 20 minutes, machine feels slow, is that normal", "should_trigger": false},
+  {"query": "chrome has 40 processes using tons of CPU on my windows desktop, give me a powershell one-liner to kill them all", "should_trigger": false}
+]

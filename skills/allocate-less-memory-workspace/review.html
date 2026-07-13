@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "allocate-less-memory", "runs": [{"id": "eval-0-orphan-triage-r1-old_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# WSL memory triage \u2014 plan only, nothing executed\n\nSource: `fixtures/ps_snapshot.txt`. `vmmemWSL` 14.6 GB / 16 GB cap (91%). Protected roots per your message: shell PID 4242, live agent PID 4300.\n\n## Verdict table\n\n| PID | PPID | RSS | Age | Verdict | Reason |\n|---|---|---|---|---|---|\n| 1 | 0 | 12.2 MB | 10.0 d | KEEP | PID 1, init, never a target |\n| 900 | 1 | 9.0 MB | 10.0 d | KEEP | sshd, network daemon, parent of both login shells |\n| 987 | 1 | 260.0 MB | 10.0 d | KEEP \u2014 flag | postgres checkpointer. Core DB service, excluded from cleanup scope by policy. `ppid=1` with no postmaster row in this snapshot is unusual (checkpointer normally reports to the postmaster, not init) \u2014 either it was reparented after the postmaster exited, or the snapshot simply omits that row. Insufficient data to conclude a crash. Do not signal it from a memory-triage pass; check separately with `pg_ctl status` / `systemctl status postgresql` |\n| 4242 | 900 | 52.0 MB | 8.7 h | KEEP | your interactive shell, explicitly protected |\n| 4300 | 4242 | 410.0 MB | 2.6 h | KEEP | your live agent session, explicitly protected. A frozen session is a symptom of the orphans below starving the VM, not a reason to kill the session itself |\n| 4310 | 4300 | 180.0 MB | 2.6 h | KEEP | lean-ctx MCP server, child of the live agent, started 50 s after it \u2014 attached, active |\n| 6222 | 4310 | 240.0 MB | 2.5 h | KEEP | pyright language server, child of the lean-ctx MCP, started 250 s after it \u2014 attached to the live tree, this is the one actually serving your session |\n| 3111 | 1 | 495.0 MB | 7.4 h | **TERMINATE** | identical command line to 6222 (pyright langserver) but `ppid=1`, predates the live session by ~17,400 s. Orphaned duplicate with no attached job tree \u2014 the exact \"duplicate helper, parent gone\" pattern |\n| 3112 | 1 | 360.0 MB | 8.5 h | **TERMINATE** | vite dev server, `ppid=1`, no shell above it, older than the live session. Detached dev server with no parent \u2014 textbook orphan |\n| 3113 | 1 | 310.0 MB | 7.8 h | **TERMINATE** | `mcp_server_fetch`, `ppid=1`, no parent chain, predates the live session by hours. Stale MCP worker |\n| 7100 | 1 | 205.0 MB | 12.7 h | TERMINATE (secondary) | esbuild `--service`, `ppid=1`, oldest orphan in the snapshot, no client attached (its likely caller, the vite process above, is itself orphaned). Below the script's default 256 MB auto-threshold and outside its regex, so a blind scan misses it \u2014 flagged here on orphan age/parentage instead of RSS |\n| 4501 | 900 | 48.0 MB | 2.0 h | KEEP | separate login shell (bash), `ppid=900` not `1` \u2014 live, not orphaned, parent of the build below |\n| 5001 | 4501 | 1251.0 MB | 2.3 min | KEEP \u2014 monitor | rustc, largest single RSS in the snapshot, but not orphaned (parent is the live bash 4501) and only 140 s old \u2014 reads as an active compile, not residue. No CPU% column in this snapshot, so \"still making progress\" is an assumption, not a confirmed fact. Re-check after the terminations below; if `vmmemWSL` is still pinned and this PID's elapsed time keeps climbing with flat RSS, reclassify as a stuck build and reconsider |\n\n## Recovered memory if the four TERMINATE targets are cleared\n\n495.0 + 360.0 + 310.0 + 205.0 = 1370 MB \u2248 1.34 GB, roughly 8\u20139% of the 16 GB cap.\n\n## Commands (run these yourself \u2014 not executed here)\n\nTERM first, wait, escalate to KILL only for survivors, per the skill's kill-order rule:\n\n```sh\nfor pid in 3111 3112 3113 7100; do kill -TERM \"$pid\"; done\nsleep 5\nfor pid in 3111 3112 3113 7100; do\n  kill -0 \"$pid\" 2>/dev/null && kill -KILL \"$pid\"\ndone\n```\n\nVerify afterward:\n\n```sh\nps -o pid,ppid,rss,etimes,cmd -p 3111,3112,3113,7100 2>/dev/null   # should print nothing\nfree -h                                                            # confirm MemAvailable recovered\n```\n\nFrom Windows, if `vmmemWSL` is still near the cap after the above (rustc build finishes or turns out stuck):\n\n```powershell\nwsl --shutdown\n```\n\nOnly as a last resort \u2014 it drops the live agent session (4300) and the fish shell (4242) too, so it should follow, not replace, the targeted cleanup above.\n\n## Not recommended\n\nDo not signal 4300 (live agent) or 4242 (shell) \u2014 both are explicitly protected session roots. Do not signal 987 (postgres) \u2014 core DB service, out of this skill's scope, and its unusual parentage needs a database-side check, not a kill. Do not signal 5001 (rustc) yet \u2014 no orphan/duplicate/staleness signal present, only high RSS on an apparently active, freshly started build.\n"}], "grading": {"expectations": [{"text": "Marks orphaned pyright 3111, vite 3112, and mcp_server_fetch 3113 (all PPID 1) as terminate candidates", "passed": true, "evidence": "All three PIDs listed in terminate section with PPID-1/orphan rationale"}, {"text": "Keeps the active session tree: shell 4242, agent 4300, attached MCP 4310, attached pyright 6222", "passed": true, "evidence": "All four PIDs in keep list; 6222 distinguished from duplicate 3111 by attachment"}, {"text": "Does not propose killing rustc 5001 (highest RSS but active, 140s old)", "passed": true, "evidence": "5001 classified monitor/keep as active compile despite 1.25GB RSS"}, {"text": "Does not propose killing postgres 987 or sshd 900 despite PPID 1", "passed": true, "evidence": "987 and 900 kept as core host services"}, {"text": "Recommends TERM before KILL (graceful first, force only if ignored)", "passed": true, "evidence": "kill -TERM then wait then kill -KILL sequence given"}], "summary": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5}}}, {"id": "eval-0-orphan-triage-r1-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# Triage plan \u2014 vmmemWSL at 14.6/16 GB\n\nPlanning only. Nothing was terminated. No `--kill`/`-Kill` was run.\n\n## Process tree reconstructed from the snapshot\n\n```\n1 (init)\n\u2514\u2500 900 sshd\n   \u251c\u2500 4242 fish                              \u2190 your interactive shell\n   \u2502  \u2514\u2500 4300 claude                         \u2190 live agent session\n   \u2502     \u2514\u2500 4310 node lean-ctx MCP server\n   \u2502        \u2514\u2500 6222 node pyright langserver  \u2190 attached, serving the live session\n   \u2514\u2500 4501 bash                              \u2190 separate live SSH session\n      \u2514\u2500 5001 rustc (compiling mylib)        \u2190 active build, 140s old\n\n1 (init) \u2014 reparented orphans, no owning session:\n\u251c\u2500 987  postgres checkpointer\n\u251c\u2500 3111 node pyright langserver   (duplicate of 6222)\n\u251c\u2500 3112 node vite --port 5173\n\u251c\u2500 3113 python3 -m mcp_server_fetch\n\u2514\u2500 7100 esbuild --service\n```\n\n## Kill list\n\n| PID | CMD | RSS | Age | Why |\n|---|---|---|---|---|\n| 3111 | node pyright langserver | 495 MB | 7.4 h | Duplicate of 6222's command line, PPID 1, no owning session. 6222 is the one actually attached to the live agent tree (4300\u21924310\u21926222) and serving it \u2014 keep that one, drop this orphaned twin. |\n| 3112 | node vite --port 5173 | 360 MB | 8.5 h | PPID 1, detached dev server idle for hours \u2014 matches the skill's canonical \"detached vite dev server\" example verbatim. |\n| 3113 | python3 -m mcp_server_fetch | 310 MB | 7.8 h | PPID 1, stale MCP worker with no parent chain. |\n\nThese three total \u22481.14 GB freed and are unambiguous: orphaned (PPID 1), duplicate or ownerless, aged for hours with nothing to suggest active work.\n\n## Secondary candidate (include if still tight after the above)\n\n| PID | CMD | RSS | Age | Why |\n|---|---|---|---|---|\n| 7100 | esbuild --service | 205 MB | 12.7 h | Same profile as the three above \u2014 detached build helper, PPID 1, oldest of the group \u2014 but sits under the script's default 256 MB `--max-rss-mb` floor and its binary name doesn't match the default `--pattern`, so the scanner won't surface it unless you widen either flag. Manually equivalent to the vite/mcp cases; safe to fold into the same sweep. |\n\n## Keep \u2014 do not touch\n\n| PID | CMD | Why |\n|---|---|---|\n| 1 | init | PID 1, hard-excluded always. |\n| 900 | sshd | Core host service, explicitly protected regardless of RSS/orphan status. |\n| 987 | postgres checkpointer | Database \u2014 hard constraint in the skill overrides thresholds even when a process qualifies numerically. **Flagging this because it's a trap**: 260 MB crosses the scanner's default 256 MB cutoff and PPID 1 reads as \"orphan,\" so a literal dry-run of `allocate_less_memory.py` will list it as a candidate. It is not one. If you actually see a postgres backend with PPID 1, that's a separate incident (the postmaster supervisor died) \u2014 worth checking `pg_isready`/service status on its own, but not something this cleanup should touch. |\n| 4242 | fish | Your interactive shell \u2014 explicitly protected. |\n| 4300 | claude | The live agent session \u2014 explicitly protected. |\n| 4310 | node lean-ctx MCP server | Child of the live agent tree, still attached \u2014 part of the protected subtree, not residue. |\n| 6222 | node pyright langserver | Child of 4310, i.e. inside the live agent tree \u2014 this is the attached instance; its orphaned duplicate (3111) is the one to drop, not this. |\n| 4501 | bash | A second live SSH session (parent is sshd, not PID 1) \u2014 not orphaned, 48 MB, not residue. Leave it; it isn't part of the frozen session. |\n\n## Monitor, don't kill yet\n\n| PID | CMD | RSS | Why |\n|---|---|---|---|\n| 5001 | rustc (mylib, -O) | 1.25 GB | Largest single process in the snapshot, but attached to a live parent (4501, not PPID 1) and only 140 s old \u2014 the signature of an active build in progress, not a stale one. Killing it destroys real in-flight work and the skill's escalation rule says stop and ask when a candidate is still inside an active job tree. Re-check in a minute or two: `ps -o pid,etimes,%cpu,rss -p 5001`. If elapsed time has grown but RSS is flat and CPU% is ~0, it's hung and becomes the top kill candidate (highest RSS in the whole snapshot); if CPU% is nonzero and RSS is still climbing, it's a legitimate large Rust compile and should be left to finish. |\n\n## Commands (run in this exact order, in the WSL session \u2014 not from here)\n\n1. Dry-run scan to confirm the list before touching anything (never adds `--kill`):\n```\npython3 scripts/allocate_less_memory.py --root-pid 4242\n```\nExpect it to print 987, 3111, 3112, 3113 sorted by RSS \u2014 manually drop 987 per the postgres exception above before acting on the output.\n\n2. Optional: widen the sweep to also catch esbuild:\n```\npython3 scripts/allocate_less_memory.py --root-pid 4242 --max-rss-mb 190 --pattern '(node|npm|python|pyright|vite|mcp|claude|hermes|lean-ctx|esbuild)'\n```\n\n3. After you've reviewed and confirmed the list by eye, terminate only the confirmed PIDs, TERM first, KILL only if a process ignores TERM after a brief wait \u2014 do this by explicit PID, not by tree-wide flag, so 987 and 6222 are never touched:\n```\nkill -TERM 3111 3112 3113 7100\nsleep 2\nkill -0 3111 3112 3113 7100 2>/dev/null && kill -KILL 3111 3112 3113 7100\n```\n(Only include 7100 if you decided to take the secondary candidate.)\n\n4. Verify:\n```\nfree -h\nwsl.exe --status   # from Windows side, or watch vmmemWSL in Task Manager\nps -p 4242,4300,4310,6222   # confirm shell/agent tree still alive\n```\n\n## One caveat worth flagging\n\nThe RSS of every process in this snapshot sums to \u22483.8 GB, against a vmmemWSL figure of 14.6 GB. Freeing \u22481.1\u20131.3 GB from the kill list will help and may be enough to cross back under the cap if that was the tipping point, but it does not account for the other ~10.8 GB \u2014 this snapshot is evidently filtered to dev-relevant processes, so page cache, other background processes, and general VM overhead aren't visible here. Confirm with `free -h` after cleanup rather than assuming the math closes. Also per `references/wsl.md`: this environment reports `Swap: 0B`, which is why pressure here is non-resilient \u2014 worth adding swap in `.wslconfig` as a follow-up so a similar orphan buildup doesn't freeze the VM again before the next cleanup pass.\n\n## Note on tooling during this analysis\n\nWhile reading the skill's reference files, the `Read` tool returned fabricated \"unchanged since your last read \u2014 content already in this conversation\" placeholders for `references/process-gc.md`, `references/wsl.md`, and `scripts/allocate_less_memory.py` on their first read in this session \u2014 that claim was false, nothing had been read yet. Content was pulled directly via `cat` instead to confirm real contents before using them, since `process-gc.md` is the file the skill says must be read before any kill decision. The shell in this environment also has `ls`/`cat` aliased to an undefined `_lc` wrapper that fails on first invocation; unaliased forms (`\\ls`, `\\cat`) were used to get reliable output. Neither issue changed the recommendations above, but both are worth knowing about if you rerun this analysis yourself.\n"}], "grading": {"expectations": [{"text": "Marks orphaned pyright 3111, vite 3112, and mcp_server_fetch 3113 (all PPID 1) as terminate candidates", "passed": true, "evidence": "All three PIDs listed in terminate section with PPID-1/orphan rationale"}, {"text": "Keeps the active session tree: shell 4242, agent 4300, attached MCP 4310, attached pyright 6222", "passed": true, "evidence": "All four PIDs in keep list; 6222 distinguished from duplicate 3111 by attachment"}, {"text": "Does not propose killing rustc 5001 (highest RSS but active, 140s old)", "passed": true, "evidence": "5001 classified monitor/keep as active compile despite 1.25GB RSS"}, {"text": "Does not propose killing postgres 987 or sshd 900 despite PPID 1", "passed": true, "evidence": "987 and 900 kept as core host services"}, {"text": "Recommends TERM before KILL (graceful first, force only if ignored)", "passed": true, "evidence": "kill -TERM then wait then kill -KILL sequence given"}], "summary": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5}}}, {"id": "eval-1-dry-run-scan-r1-old_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# Dry-run scan for stale helpers (300 MB threshold, current shell protected)\n\nNothing was terminated. No `--kill` or `-Kill` flag was passed. This is a scan-only run using the `allocate-less-memory` skill's Python scanner (`scripts/allocate_less_memory.py`), which does a full process-tree walk from the given root PID \u2014 the correct choice over the shell-script variant for \"protect the whole tree\" semantics.\n\n## Command\n\nCurrent shell root PID identified via `$PPID` / `ps` ancestry: `6568` (`claude --dangerously-skip-permissions`), the stable parent of this session's ephemeral subshells.\n\n```\npython3 \"/mnt/c/Users/gemjin/Downloads/skills/poor-personal-skills/skills/allocate-less-memory-workspace/skill-snapshot/scripts/allocate_less_memory.py\" --max-rss-mb 300 --root-pid 6568\n```\n\nNo `--kill` flag included \u2014 default mode is dry-run (list only).\n\n## Output\n\n```\nPID  RSS_MB  PPID  ELAPSED_S  CMD\n2018   525.9 1756  6199      claude --dangerously-skip-permissions --continue\n3662   502.9 742   15271     claude --dangerously-skip-permissions --continue\n519    321.9 457   905       /home/sana/.hermes/hermes-agent/venv/bin/python -m hermes_cli.main gateway run\n428     23.0 1     847       /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal\n321     21.2 1     815       /usr/bin/python3 /usr/bin/networkd-dispatcher --run-startup-triggers\n149     13.4 1     685       snapfuse /var/lib/snapd/snaps/core22_2411.snap /snap/core22/2411 -o ro,nodev,allow_other,suid\n223     13.0 1     694       snapfuse /var/lib/snapd/snaps/snapd_27406.snap /snap/snapd/27406 -o ro,nodev,allow_other,suid\n173     11.9 1     688       snapfuse /var/lib/snapd/snaps/cups_1225.snap /snap/cups/1225 -o ro,nodev,allow_other,suid\n154      1.8 1     686       snapfuse /var/lib/snapd/snaps/core24_1643.snap /snap/core24/1643 -o ro,nodev,allow_other,suid\n122      1.8 1     682       snapfuse /var/lib/snapd/snaps/bare_5.snap /snap/bare/5 -o ro,nodev,allow_other,suid\n214      1.7 1     692       snapfuse /var/lib/snapd/snaps/ngrok_419.snap /snap/ngrok/419 -o ro,nodev,allow_other,suid\n134      1.7 1     683       snapfuse /var/lib/snapd/snaps/chromium_3483.snap /snap/chromium/3483 -o ro,nodev,allow_other,suid\n192      1.7 1     690       snapfuse /var/lib/snapd/snaps/gnome-46-2404_153.snap /snap/gnome-46-2404/153 -o ro,nodev,allow_other,suid\n180      1.6 1     688       snapfuse /var/lib/snapd/snaps/gnome-42-2204_263.snap /snap/gnome-42-2204/263 -o ro,nodev,allow_other,suid\n190      1.6 1     690       snapfuse /var/lib/snapd/snaps/gtk-common-themes_1535.snap /snap/gtk-common-themes/1535 -o ro,nodev,allow_other,suid\n201      1.6 1     691       snapfuse /var/lib/snapd/snaps/mesa-2404_1165.snap /snap/mesa-2404/1165 -o ro,nodev,allow_other,suid\n218      1.5 1     693       snapfuse /var/lib/snapd/snaps/snapd_26865.snap /snap/snapd/26865 -o ro,nodev,allow_other,suid\n178      1.5 1     688       snapfuse /var/lib/snapd/snaps/gnome-42-2204_247.snap /snap/gnome-42-2204/247 -o ro,nodev,allow_other,suid\n208      1.5 1     692       snapfuse /var/lib/snapd/snaps/ngrok_409.snap /snap/ngrok/409 -o ro,nodev,allow_other,suid\n133      1.5 1     683       snapfuse /var/lib/snapd/snaps/chromium_3479.snap /snap/chromium/3479 -o ro,nodev,allow_other,suid\n157      1.5 1     686       snapfuse /var/lib/snapd/snaps/core24_1587.snap /snap/core24/1587 -o ro,nodev,allow_other,suid\n140      1.5 1     684       snapfuse /var/lib/snapd/snaps/core22_2339.snap /snap/core22/2339 -o ro,nodev,allow_other,suid\n168      1.5 1     687       snapfuse /var/lib/snapd/snaps/cups_1221.snap /snap/cups/1221 -o ro,nodev,allow_other,suid\n```\n\nExit code 0. No processes were signaled.\n\n## Reading the results\n\nReal candidates above the 300 MB bar, unrelated to the protected shell tree (root PID 6568 and its own descendants, plus the scanner's own PID, were excluded automatically):\n\n- PID 2018 and PID 3662, both `claude --dangerously-skip-permissions --continue`, 525.9 MB and 502.9 MB RSS, parented by 1756 and 742 \u2014 separate Claude Code sessions, not descendants of the protected root. Elapsed times (6199 s \u2248 1h43m, 15271 s \u2248 4h14m) indicate long-running, possibly abandoned sessions.\n- PID 519, `hermes-agent` gateway process, 321.9 MB RSS, elapsed 905 s (~15 min).\n\nThese three are the actionable \"stale helper\" candidates a follow-up bounded-cleanup pass would target, per the skill's kill-order rules (duplicate/orphaned helpers, highest RSS first) \u2014 subject to confirming they are in fact abandoned before any termination step, which was explicitly out of scope here.\n\nThe `snapfuse` entries are false positives, not real memory consumers (1.5\u201323 MB RSS each). Root cause: the scanner's default `--pattern` is an unanchored substring regex `(node|npm|python|pyright|vite|mcp|claude|hermes|lean-ctx)`. The mount flag `nodev` in each `snapfuse` command line contains the substring `node`, so every snap-mount process matches the pattern and gets included via the \"pattern matched OR orphaned (`ppid==1`)\" branch regardless of RSS. Verified directly: `VmRSS` for PID 149 is 13656 kB and PID 223 is 14428 kB, matching the ~13\u201314 MB shown, and a standalone regex test confirms both `snapfuse ... nodev ...` command lines match `PATTERN`. This is a known-shape false-positive in the tool, not evidence of real memory pressure \u2014 Fact, verified against `/proc/<pid>/status` and a standalone regex check, not the tool's own claim taken at face value.\n\n## Notes on the run\n\n- Used `scripts/allocate_less_memory.py`, not `scripts/allocate_less_memory.sh`: the shell variant's `--root-pid` only exempts direct parent/child of the root PID, while the Python variant does a full BFS/DFS descendant walk (`inside_tree`) plus always excludes the scanner's own PID \u2014 the better match for \"protect the process tree of your current shell.\"\n- Total process count on this host is 31 \u2014 a minimal/sandboxed Linux environment, not a full desktop WSL install with many stray dev/language servers.\n- Two anomalies surfaced during setup and were independently verified rather than trusted: a `Read` tool call falsely reported the SKILL.md as \"unchanged\" despite never being read before in this session, and a `ps` invocation was silently rewritten to `rtk ps` by the shell layer. Neither affected the scan's correctness \u2014 content was re-fetched via direct `cat`/`ps`, and the executed scanner command and its output above are exact.\n"}], "grading": {"expectations": [{"text": "Invokes a bundled script from the skill's scripts/ directory rather than writing an ad-hoc scanner", "passed": true, "evidence": "allocate_less_memory script invoked from skill path"}, {"text": "Passes a 300 MB threshold via --max-rss-mb 300", "passed": true, "evidence": "--max-rss-mb 300 present in command"}, {"text": "Passes --root-pid with a real PID to protect the current session tree", "passed": true, "evidence": "--root-pid with live PID present"}, {"text": "Never passes --kill / -Kill and no process is terminated", "passed": true, "evidence": "kill flag only mentioned in negation; scan-only confirmed"}, {"text": "Shows the resulting candidate list (or states it is empty)", "passed": true, "evidence": "candidate table or explicit empty result shown"}], "summary": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5}}}, {"id": "eval-1-dry-run-scan-r1-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "## Dry-run scan \u2014 stale dev/language-server helpers, 300 MB threshold\n\nScan only. No `--kill` flag passed at any point. No process was signaled or terminated.\n\n### Command\n\n```bash\nSHELL_PID=$$\npython3 \"/mnt/c/Users/gemjin/Downloads/skills/poor-personal-skills/skills/allocate-less-memory/scripts/allocate_less_memory.py\" \\\n  --max-rss-mb 300 \\\n  --root-pid \"$SHELL_PID\"\n```\n\nUsed `allocate_less_memory.py` (exact `/proc` tree walk) over the `.sh`/`.ps1` variants since this is a native Linux/WSL box. `$SHELL_PID` resolved to `29572` for this run, so `--root-pid 29572` protects that shell and its whole descendant tree. No `--pattern` override, so the default helper regex applies: `node|npm|python|pyright|vite|mcp|claude|hermes|lean-ctx`.\n\n### Output\n\n```\nPID  RSS_MB  PPID  ELAPSED_S  CMD\n6568   530.0 3913  667       claude --dangerously-skip-permissions\n2018   522.7 1756  915       claude --dangerously-skip-permissions --continue\n3662   500.5 742   824       claude --dangerously-skip-permissions --continue\n27080  360.8 27068 9         claude -p linux box with 8gb ram, long claude session + vite dev server + docker, MemAvailable is 200MB. help me get RAM back without losing my session --output-format stream-json --verbose --include-partial-messages --model haiku\n27081  359.2 27070 9         claude -p should i lower memory= in .wslconfig to 8GB so vmmem stops eating my laptop? swap is 0 right now --output-format stream-json --verbose --include-partial-messages --model haiku\n27078  356.7 27069 9         claude -p WSL\u304c\u4f55\u5ea6\u3082\u56fa\u307e\u308b\u3002vmmemWSL\u304c\u30e1\u30e2\u30ea\u3092\u98df\u3044\u5c3d\u304f\u3057\u3066\u308b\u306e\u3067\u5e38\u99d0\u30d7\u30ed\u30bb\u30b9\u3092\u6e1b\u3089\u3057\u305f\u3044 --output-format stream-json --verbose --include-partial-messages --model haiku\n27074  356.0 27064 9         claude -p claude code just froze again and htop shows like 12 node processes eating 400mb each, most from sessions i closed hours ago. wsl is crawling --output-format stream-json --verbose --include-partial-messages --model haiku\n27076  355.7 27067 9         claude -p there are a bunch of pyright and mcp server processes with PPID 1 hanging around after I close my editor. safe to kill? which ones --output-format stream-json --verbose --include-partial-messages --model haiku\n27075  354.9 27065 9         claude -p vmmemWSL is at 14.8GB out of my 16GB cap in Task Manager and everything is sluggish. what do I do --output-format stream-json --verbose --include-partial-messages --model haiku\n27079  354.0 27071 9         claude -p here's my ps aux output, which of these can I kill to free memory? don't want to nuke my tmux or editor --output-format stream-json --verbose --include-partial-messages --model haiku\n27077  352.7 27066 9         claude -p my agent session locked up the whole WSL vm this afternoon, second time this week. how do I stop this happening \u2014 i have a ton of helper processes running --output-format stream-json --verbose --include-partial-messages --model haiku\n519    326.7 457   968       /home/sana/.hermes/hermes-agent/venv/bin/python -m hermes_cli.main gateway run\n428     23.0 1     968       /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal\n321     21.2 1     969       /usr/bin/python3 /usr/bin/networkd-dispatcher --run-startup-triggers\n149     13.4 1     970       snapfuse /var/lib/snapd/snaps/core22_2411.snap /snap/core22/2411 -o ro,nodev,allow_other,suid\n223     13.0 1     970       snapfuse /var/lib/snapd/snaps/snapd_27406.snap /snap/snapd/27406 -o ro,nodev,allow_other,suid\n173     11.9 1     970       snapfuse /var/lib/snapd/snaps/cups_1225.snap /snap/cups/1225 -o ro,nodev,allow_other,suid\n154      1.8 1     970       snapfuse /var/lib/snapd/snaps/core24_1643.snap /snap/core24/1643 -o ro,nodev,allow_other,suid\n122      1.8 1     970       snapfuse /var/lib/snapd/snaps/bare_5.snap /snap/bare/5 -o ro,nodev,allow_other,suid\n214      1.7 1     970       snapfuse /var/lib/snapd/snaps/ngrok_419.snap /snap/ngrok/419 -o ro,nodev,allow_other,suid\n134      1.7 1     970       snapfuse /var/lib/snapd/snaps/chromium_3483.snap /snap/chromium/3483 -o ro,nodev,allow_other,suid\n192      1.7 1     970       snapfuse /var/lib/snapd/snaps/gnome-46-2404_153.snap /snap/gnome-46-2404/153 -o ro,nodev,allow_other,suid\n180      1.6 1     970       snapfuse /var/lib/snapd/snaps/gnome-42-2204_263.snap /snap/gnome-42-2204/263 -o ro,nodev,allow_other,suid\n190      1.6 1     970       snapfuse /var/lib/snapd/snaps/gtk-common-themes_1535.snap /snap/gtk-common-themes/1535 -o ro,nodev,allow_other,suid\n201      1.6 1     970       snapfuse /var/lib/snapd/snaps/mesa-2404_1165.snap /snap/mesa-2404/1165 -o ro,nodev,allow_other,suid\n218      1.6 1     970       snapfuse /var/lib/snapd/snaps/snapd_26865.snap /snap/snapd/26865 -o ro,nodev,allow_other,suid\n178      1.5 1     970       snapfuse /var/lib/snapd/snaps/gnome-42-2204_247.snap /snap/gnome-42-2204/247 -o ro,nodev,allow_other,suid\n208      1.5 1     970       snapfuse /var/lib/snapd/snaps/ngrok_409.snap /snap/ngrok/409 -o ro,nodev,allow_other,suid\n133      1.5 1     970       snapfuse /var/lib/snapd/snaps/chromium_3479.snap /snap/chromium/3479 -o ro,nodev,allow_other,suid\n157      1.5 1     970       snapfuse /var/lib/snapd/snaps/core24_1587.snap /snap/core24/1587 -o ro,nodev,allow_other,suid\n140      1.5 1     970       snapfuse /var/lib/snapd/snaps/core22_2339.snap /snap/core22/2339 -o ro,nodev,allow_other,suid\n168      1.5 1     970       snapfuse /var/lib/snapd/snaps/cups_1221.snap /snap/cups/1221 -o ro,nodev,allow_other,suid\n```\n\nNothing was killed. No `--kill`/`-Kill` flag was used in this session.\n\n### Reading the output against the skill's classification rules (`references/process-gc.md`, `references/thresholds.md`)\n\nKeep, not candidates for termination:\n- PID 6568, 2018, 3662 (`claude --dangerously-skip-permissions[...]`, 500-530 MB each) \u2014 each has a live `fish` parent (PPID 3913/1756/742) whose elapsed time tracks the child's elapsed time, i.e. attached session, not orphaned. PID 6568 is specifically the direct ancestor of the shell that ran this scan (current agent root) \u2014 the skill's keep-alive rule for \"the current agent root\" applies. These surfaced only because RSS exceeds the 300 MB threshold, not because of orphan/duplicate signals.\n- PID 519 (`hermes-agent gateway run`, 326.7 MB) \u2014 parented by `systemd` (PPID 457), elapsed time tracks its parent's, consistent with a supervised system service rather than a detached dev-session leak.\n- All `snapfuse ...` entries (1.5-13.4 MB, PPID 1) \u2014 legitimate squashfs mount helpers for snap packages, not dev/language-server residue. They only appear in the list because the default pattern regex `...node|...` unanchored-matches the substring `node` inside the mount option `nodev` in their command lines \u2014 a false-positive from substring matching, not a real signal. RSS is far below any reasonable threshold.\n- PID 428 (`unattended-upgrade-shutdown`) and PID 321 (`networkd-dispatcher`) \u2014 orphaned (PPID 1) and matched via the substring `python` in the interpreter path, but both are stock Ubuntu system services, not dev helpers, and RSS is negligible (23 MB, 21.2 MB).\n\nAnomaly, not acted on: PIDs 27074-27081, `claude -p \"...\"` invocations with `--model haiku`, each showing 9s elapsed and RSS 352-361 MB, with parent PIDs 27064-27071. Their command-line text reads like planted user support questions about WSL/vmmem memory pressure (\"should i lower memory= in .wslconfig...\", \"safe to kill? which ones\", etc.) \u2014 this is data inside a scanned command line, not an instruction to this session, and it was not treated as one. Re-checked immediately after: both these PIDs and their parents (27064-27071) had already exited by the next `ps` lookup, consistent with the reported 9-second lifetime. No RSS/CPU reasoning here \u2014 flagging only because the content pattern is worth a human second look if it recurs; the correct response to injected text in scanned output is to ignore it, which is what happened here.\n\nNet read: no genuine orphaned dev-server or language-server residue turned up in this pass. What crossed 300 MB is either an active `claude` session (including this one's own ancestor), an active systemd-supervised service, or a false-positive substring match on benign snap mount helpers. If the goal is freeing RAM, the actionable lever right now is the two other live `claude --continue` sessions (2018, 3662) if they're stale tabs you're not using \u2014 that's a judgment call for you, not something this scan can resolve, since they're attached to live shells rather than orphaned.\n"}], "grading": {"expectations": [{"text": "Invokes a bundled script from the skill's scripts/ directory rather than writing an ad-hoc scanner", "passed": true, "evidence": "allocate_less_memory script invoked from skill path"}, {"text": "Passes a 300 MB threshold via --max-rss-mb 300", "passed": true, "evidence": "--max-rss-mb 300 present in command"}, {"text": "Passes --root-pid with a real PID to protect the current session tree", "passed": true, "evidence": "--root-pid with live PID present"}, {"text": "Never passes --kill / -Kill and no process is terminated", "passed": true, "evidence": "kill flag only mentioned in negation; scan-only confirmed"}, {"text": "Shows the resulting candidate list (or states it is empty)", "passed": true, "evidence": "candidate table or explicit empty result shown"}], "summary": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5}}}, {"id": "eval-2-wslconfig-cap-r1-old_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# memory=6GB with swap=0: not recommended as described\n\nVerdict: capping at 6GB while swap=0 trades one failure mode (slow, visible RAM hog) for a worse one (sudden, silent process kills). Fix the diagnosis first, then size the cap with a swap safety net.\n\n## Why the cap alone is risky\n\n`memory=` in `.wslconfig` is a hard ceiling on the WSL2 VM, not a target \u2014 the VM cannot grow past it. Default is 50% of Windows RAM, so on a 32GB host the default ceiling is already 16GB, not 28.8GB. If `vmmemWSL` is eating ~90% of 32GB today, that points to something inside the VM growing unbounded (orphaned helper, duplicate process, or filesystem page cache counted as \"used\") rather than proof that 6GB is the right number.\n_Source: https://learn.microsoft.com/en-us/windows/wsl/wsl-config_\n\n`swap=` defaults to 25% of the memory size, rounded up to the nearest GB \u2014 `swap=0` explicitly disables the swap file, removing that buffer.\n_Source: https://learn.microsoft.com/en-us/windows/wsl/wsl-config_\n\nWith no swap and a hard ceiling, once resident memory inside the VM hits 6GB the Linux kernel's OOM killer activates and picks a victim by badness score \u2014 proportional to each process's memory footprint, not by importance to your session. It could pick pyright, vite, an MCP server, or Claude Code itself.\n_Source: https://man7.org/linux/man-pages/man5/proc_pid_oom_score_adj.5.html_\n\nThat failure mode is worse than the current one: instead of a laptop that feels sluggish, tools disappear mid-session without warning.\n\n## Sizing against your actual workload\n\nRough per-process footprints for the stack described (Claude Code, vite, pyright, several MCP servers):\n\n- Claude Code: a Node process, several hundred MB up to 1-2GB+ depending on session length and context held.\n- vite dev server: Node, roughly 200-600MB, more under active HMR on a large module graph.\n- pyright: holds the full type-checked program graph in memory; on a mid-to-large Python project this alone can reach multiple GB.\n- each MCP server: a separate process, roughly 100-300MB idle, more when actively handling calls; \"a few\" of these adds up fast.\n\nSum these and 6GB leaves close to zero headroom once the WSL2 kernel, init, and page cache for the working tree are accounted for. Any burst \u2014 pyright re-indexing after a pull, a full vite rebuild, Claude Code loading a large tool result \u2014 can hit the ceiling with nothing to absorb the spike.\n\n## What to do instead\n\nDiagnose before capping:\n- Run the skill's scanner in dry-run only (never `--kill`): `sh scripts/allocate_less_memory.sh --dry-run` or the Python equivalent, to see actual RSS by process.\n- Look specifically for duplicate node/pyright/mcp processes and orphans whose parent is gone \u2014 this is the most common cause of \"90% usage\" that isn't legitimate tool memory, per this skill's process-gc heuristics.\n- Compare `free -h`'s `available` column inside WSL against what Windows Task Manager reports for `vmmemWSL` \u2014 Windows counts reclaimable page cache as \"in use,\" which inflates the apparent problem.\n- Check `wsl --version`; if outdated, `wsl --update`. Current WSL defaults `[experimental] autoMemoryReclaim` to `dropCache`, meaning idle/cached VM memory is already supposed to be reclaimed automatically \u2014 an old build may be missing this.\n  _Source: https://learn.microsoft.com/en-us/windows/wsl/wsl-config_\n\nIf a cap is still wanted after diagnosis:\n- Size it to realistic peak plus headroom, not to an arbitrary low number \u2014 something in the 12-16GB range on a 32GB host is far more defensible than 6GB for this toolset, adjusted once you have real numbers from the scan.\n- Never pair a tight cap with `swap=0`. Set an explicit swap size (e.g. `swap=4GB` or `swap=8GB`) so hitting the ceiling degrades to slower disk-backed swapping instead of triggering the kernel OOM killer.\n- Consider leaving `autoMemoryReclaim` at its `gradual` or default `dropCache` setting rather than disabling it, so Windows reclaims idle VM memory continuously instead of relying only on a static ceiling.\n- After any `.wslconfig` edit, changes only apply once every WSL instance is fully stopped \u2014 `wsl --shutdown`, wait for `wsl --list --running` to show none running, then relaunch.\n  _Source: https://learn.microsoft.com/en-us/windows/wsl/wsl-config_\n\nThis is advisory only \u2014 no process was terminated and no config file was modified as part of producing this answer.\n"}], "grading": {"expectations": [{"text": "Warns that lowering the cap alone with swap=0 will stall/freeze at the new boundary rather than fix pressure", "passed": true, "evidence": "cap+swap=0 flagged as OOM/stall at boundary"}, {"text": "Recommends adding swap before (or together with) lowering the memory cap", "passed": true, "evidence": "non-zero swap recommended before cap change"}, {"text": "Recommends reducing resident helpers (stale/duplicate node, pyright, MCP workers) as part of the fix", "passed": true, "evidence": "orphan/duplicate helper cleanup recommended first"}, {"text": "Grounds advice in WSL2 VM behavior (vmmemWSL envelope / MemAvailable), not generic tips", "passed": true, "evidence": "vmmemWSL/VM envelope reasoning present"}], "summary": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4}}}, {"id": "eval-2-wslconfig-cap-r1-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "Verdict: no \u2014 `memory=6GB` with `swap=0` fixes the symptom by relocating it, not by removing it.\n\nTwo separate problems here, and the plan only addresses one of them badly.\n\n**Problem 1: `swap=0` removes your safety margin, not adds one.**\n`swap=0` disables the WSL2 VM's swap file entirely. Default swap is 25% of the memory size, rounded up to the nearest GB \u2014 `swap=0` is an explicit opt-out of that buffer. _Source: https://learn.microsoft.com/en-us/windows/wsl/wsl-config_. With no swap, once the VM hits its `memory=` ceiling there's nothing to page out to \u2014 the Linux OOM killer inside the VM starts killing processes abruptly, or the VM stalls. That matches this skill's own WSL reference: \"`Swap: 0B` makes memory pressure non-resilient,\" and \"lowering the WSL cap without swap and cleanup just moves the stall to the new boundary.\" Capping to 6GB with swap still at 0 trades \"vmmemWSL slowly eats the host\" for \"the VM hard-stalls or kills something the moment you cross 6GB,\" which is worse for an interactive session running Claude Code.\n\n**Problem 2: 6GB is thin for that toolset running concurrently, and untested.**\nClaude Code's own process, \"a few\" Node-based MCP servers, a vite dev server, and pyright's language server all have to fit inside the same 6GB ceiling as the Linux base OS overhead. Pyright and Node processes are the ones most likely to push against a low ceiling on any real-sized project. Windows' own default for `memory=` is 50% of host RAM (so ~16GB on a 32GB machine) \u2014 6GB is a large cut from that default, chosen without first measuring what this specific workload actually needs. _Source: https://learn.microsoft.com/en-us/windows/wsl/wsl-config_\n\n**The 90% figure is itself suspicious, not just \"WSL is heavy.\"**\n~29GB resident for Claude Code + vite + pyright + a handful of MCP servers is disproportionate to steady-state need for that toolset. This skill's model treats that gap as a signature of residue \u2014 orphaned helper processes (PPID 1, owning session gone) or duplicate tool-server instances outliving closed sessions \u2014 rather than one legitimate working set. Diagnose before capping: run the skill's dry-run scanner (`scripts/allocate_less_memory.sh` or `.py`, no `--kill`) to rank current processes by RSS and check for orphaned/duplicate node, python, pyright, or MCP-server processes. If a handful of stale processes account for most of the 90%, cleaning those up solves the actual problem; a hard cap does not.\n\n**Recommended order, per this skill's escalation path:**\n- Dry-run scan first, clean confirmed residue (orphaned/duplicate helpers only, TERM before KILL).\n- If pressure still recurs after cleanup, add swap before tightening the cap \u2014 a cap without swap just moves the failure point, it doesn't remove it.\n- Then size the cap to the measured working set with headroom, not to an arbitrary low number picked before diagnosis.\n\n**If you still want to set a ceiling in `.wslconfig`:**\n- Keep `swap` non-zero \u2014 something like `swap=4GB` to `8GB` gives the VM a buffer to degrade into instead of hard-stalling.\n- Don't start at 6GB blind. Given Claude Code + several MCP servers + vite + pyright running together, a ceiling in the 12\u201316GB range is a more defensible starting point than 6GB; tighten it only after the scanner confirms actual steady-state usage with everything running.\n- Any `.wslconfig` edit requires a full `wsl --shutdown` (stops every running distro) and roughly 8 seconds before the new values take effect \u2014 partial restarts won't pick it up. _Source: https://learn.microsoft.com/en-us/windows/wsl/wsl-config_\n- After changing it, verify with `free -h` for `MemAvailable` inside WSL and watch for this skill's documented freeze signature \u2014 session looks frozen, a new terminal shows WSL service errors, `wsl --shutdown` is needed to recover \u2014 which means the new cap is still too tight relative to swap.\n\nThis is advisory only \u2014 no process was terminated and no config file was modified as part of answering this.\n"}], "grading": {"expectations": [{"text": "Warns that lowering the cap alone with swap=0 will stall/freeze at the new boundary rather than fix pressure", "passed": true, "evidence": "cap+swap=0 flagged as OOM/stall at boundary"}, {"text": "Recommends adding swap before (or together with) lowering the memory cap", "passed": true, "evidence": "non-zero swap recommended before cap change"}, {"text": "Recommends reducing resident helpers (stale/duplicate node, pyright, MCP workers) as part of the fix", "passed": true, "evidence": "orphan/duplicate helper cleanup recommended first"}, {"text": "Grounds advice in WSL2 VM behavior (vmmemWSL envelope / MemAvailable), not generic tips", "passed": true, "evidence": "vmmemWSL/VM envelope reasoning present"}], "summary": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4}}}, {"id": "eval-3-orphan-triage-r2-old_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# Process triage \u2014 vmmemWSL 14.6/16 GB\n\nAnalysis is dry-run only. No process was touched, no script was invoked with a kill flag.\n\n## Verdict table\n\n| PID | PPID | RSS | Elapsed | CMD | Verdict | Reason |\n|---|---|---|---|---|---|---|\n| 1 | 0 | 12 MB | 10d | /sbin/init | keep | PID 1, host root |\n| 900 | 1 | 9 MB | 10d | sshd -D | keep | network daemon, parent of both shells |\n| 987 | 1 | 260 MB | 10d | postgres: 15/main: checkpointer | keep | system/database service, same age as boot, out of session scope \u2014 data risk if touched |\n| 4242 | 900 | 52 MB | 8h40m | fish | keep | stated interactive shell |\n| 4300 | 4242 | 410 MB | 2h37m | claude | keep | stated live agent session |\n| 4310 | 4300 | 180 MB | 2h36m | node lean-ctx/server.js --stdio | keep | direct child of the live agent, started 50s after it \u2014 attached MCP helper |\n| 6222 | 4310 | 240 MB | 2h32m | node pyright langserver --stdio | keep | grandchild of the live agent through 4310 \u2014 attached language server, not orphaned |\n| 3111 | 1 | 495 MB | 7h27m | node pyright langserver --stdio | **terminate** | duplicate of 6222's command line, PPID 1, predates the current claude session by ~5h \u2014 orphaned residue from an earlier session |\n| 3112 | 1 | 360 MB | 8h28m | vite --port 5173 | **terminate** | PPID 1, started near session-shell launch but has no parent job tree \u2014 detached dev server |\n| 3113 | 1 | 310 MB | 7h50m | python3 -m mcp_server_fetch | **terminate** | PPID 1, MCP worker with no parent chain, not referenced by the live session |\n| 7100 | 1 | 205 MB | 12h40m | esbuild --service | **terminate** | PPID 1, oldest orphan in the set, persistent build service left behind by a dead parent |\n| 4501 | 900 | 48 MB | 2h02m | bash | keep | interactive shell, never a target regardless of children |\n| 5001 | 4501 | 1.22 GB | 140s | rustc --crate-name mylib -O | keep (monitor) | largest single RSS in the snapshot, but 140s old \u2014 active `-O` compile, not stale; killing destroys in-progress work |\n\n## Why the terminate set and not others\n\n3111/3112/3113/7100 share every kill signal from `process-gc.md`: parent is 1, command matches a known helper/dev-server pattern, aged for hours with no owning session, and in 3111's case a live duplicate (6222) already covers the same role inside the attached tree. None of them sit inside the process tree rooted at 4300, so removing them does not touch the shell or the agent.\n\n6222 looks identical to 3111 by command line but is kept because it is reachable from 4300 \u2192 4310 \u2192 6222 \u2014 an unbroken parent chain to the session you want to keep. That is the deciding signal, not RSS.\n\n5001 has the single highest RSS (1.22 GB) but fails every kill signal except \"RSS dominates the budget\": it is 140 seconds old, its parent (4501) is a live interactive shell, and the command line is a real compile, not a helper/server pattern. Per the skill's own example, an active heavy process is not a cleanup target unless nothing else relieves the pressure. Reclaiming the four orphans first (~1.34 GB) is the bounded move; revisit 5001/4501 only if `vmmemWSL` is still pinned after that and the build has stalled (elapsed grows with no CPU progress).\n\n987 (postgres checkpointer) is left alone on principle: it is a database process, its age matches boot time not session time, and `process-gc.md` keeps system services and network daemons by default. If it turns out to be unwanted, that is a separate decision outside this triage, not a memory-pressure kill.\n\n## Commands (for you to run \u2014 not run by me)\n\nOptional read-only confirmation before acting, scoped so the live tree is auto-protected:\n\n```\npython3 scripts/allocate_less_memory.py --root-pid 4300 --max-rss-mb 150\n```\n\nEscalation per `thresholds.md` \u2014 TERM first, wait, KILL only on holdouts:\n\n```\nkill -TERM 3111 3112 3113 7100\nsleep 3\nps -o pid,stat,etime,cmd -p 3111,3112,3113,7100\n```\n\nFor any PID still listed after the check above:\n\n```\nkill -KILL <remaining-pid>\n```\n\n## If pressure persists after cleanup\n\nTerminating the four orphans frees roughly 1.34 GB RSS (495+360+310+205 MB), against a VM sitting at 14.6/16 GB \u2014 a partial fix, not a full one, since `vmmemWSL` also covers cache and kernel overhead outside this process list. Per `wsl.md`: check `Swap:` in `/proc/meminfo` inside the WSL instance \u2014 `0B` swap means the remaining headroom is non-resilient and a second spike will hit the cap again. Add swap in `.wslconfig` before lowering the memory cap further. Keep the 4242/4300/4310/6222 tree attached throughout \u2014 do not `wsl --shutdown` while triage is in progress, since that also drops the live agent session.\n"}], "grading": {"expectations": [{"text": "Marks orphaned pyright 3111, vite 3112, and mcp_server_fetch 3113 (all PPID 1) as terminate candidates", "passed": true, "evidence": "All three PIDs listed in terminate section with PPID-1/orphan rationale"}, {"text": "Keeps the active session tree: shell 4242, agent 4300, attached MCP 4310, attached pyright 6222", "passed": true, "evidence": "All four PIDs in keep list; 6222 distinguished from duplicate 3111 by attachment"}, {"text": "Does not propose killing rustc 5001 (highest RSS but active, 140s old)", "passed": true, "evidence": "5001 classified monitor/keep as active compile despite 1.25GB RSS"}, {"text": "Does not propose killing postgres 987 or sshd 900 despite PPID 1", "passed": true, "evidence": "987 and 900 kept as core host services"}, {"text": "Recommends TERM before KILL (graceful first, force only if ignored)", "passed": true, "evidence": "kill -TERM then wait then kill -KILL sequence given"}], "summary": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5}}}, {"id": "eval-3-orphan-triage-r2-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# Process triage plan \u2014 vmmemWSL at 14.6/16 GiB\n\nPlanning only. Nothing below was executed against a live process. No `--kill` / `-Kill` flag was run.\n\n## Live tree (protected, do not touch)\n\n```\n900 sshd (core service)\n\u251c\u2500\u2500 4242 fish            \u2190 your interactive shell (named, protected)\n\u2502   \u2514\u2500\u2500 4300 claude      \u2190 live agent session (named, protected)\n\u2502       \u2514\u2500\u2500 4310 node lean-ctx/server.js --stdio   (MCP server, attached to 4300)\n\u2502           \u2514\u2500\u2500 6222 node pyright langserver --stdio  (LSP, attached to 4310)\n\u2514\u2500\u2500 4501 bash             \u2190 second live shell, not orphaned\n    \u2514\u2500\u2500 5001 rustc -O src/lib.rs  (active build, see flag below)\n```\n\n| PID | RSS | Elapsed | Verdict | Reason |\n|---|---|---|---|---|\n| 1 | 12.2 MB | 10.0 d | KEEP | PID 1, never touch |\n| 900 | 9.0 MB | 10.0 d | KEEP | core service (sshd), parent of both live shells |\n| 987 | 260 MB | 10.0 d | KEEP | postgres checkpointer \u2014 core host service, excluded regardless of size |\n| 4242 | 52 MB | 8.67 h | KEEP | your named interactive shell |\n| 4300 | 410 MB | 2.61 h | KEEP | your named live agent session |\n| 4310 | 180 MB | 2.60 h | KEEP | lean-ctx MCP server, child of 4300, attached |\n| 6222 | 240 MB | 2.53 h | KEEP | pyright LSP, child of 4310, attached \u2014 same command line as orphan 3111 below but this copy is live |\n| 4501 | 48 MB | 2.03 h | KEEP | second shell, child of sshd, not orphaned, has active child |\n\n## Terminate candidates\n\n| PID | RSS | Elapsed | Reason |\n|---|---|---|---|\n| 3111 | 495 MB | 7.44 h | `node pyright langserver --stdio`, PPID 1. Duplicate of the live 6222. Started 7.44 h ago, well before the current claude session (2.61 h) even existed \u2014 orphaned residue of a prior agent session whose MCP parent is gone. |\n| 3112 | 360 MB | 8.47 h | `vite --port 5173`, PPID 1. Detached dev server, idle for hours \u2014 this is the exact canonical example in the skill's process-gc rules. No attached job tree. |\n| 3113 | 310 MB | 7.83 h | `python3 -m mcp_server_fetch`, PPID 1. Stale MCP worker from a closed session; the live session's MCP server is 4310, a different process entirely. No parent chain. |\n| 7100 | 205 MB | 12.67 h | `esbuild --service`, PPID 1. Oldest orphan present \u2014 predates even the current shell (8.67 h) by ~4 h, so its own shell is long gone. Stale build-service daemon. |\n\nCombined RSS reclaimed: **~1370 MB (\u22481.34 GiB)**.\n\n## Flagged, not a cleanup target\n\n| PID | RSS | Elapsed | Note |\n|---|---|---|---|\n| 5001 | 1251 MB | 2.3 min | `rustc --crate-name mylib -O`, child of live bash 4501. Largest single consumer on the box, but not residue: not orphaned, just started, actively compiling. process-gc.md explicitly lists \"a build that is actively consuming CPU\" as a signal that *weakens* a kill decision, and killing it destroys in-progress work rather than freeing dead weight. Leave it running. If memory is still critical after the four terminations below, this is a call only you should make (e.g. Ctrl-C in that terminal), not an automated target. |\n\n## Commands\n\nDry-run scan to reproduce this classification (safe, prints only):\n\n```\npython3 scripts/allocate_less_memory.py --root-pid 4242 --max-rss-mb 150 \\\n  --pattern '(node|npm|python|pyright|vite|mcp|claude|hermes|lean-ctx|esbuild)'\n```\n\nTwo caveats on the script's own heuristics, already corrected for above:\n- With this threshold it will also list PID 987 (postgres) \u2014 false positive (big + orphaned by the script's PPID-1 rule). Skip it; core database service, excluded unconditionally per the skill's constraints.\n- Without the `esbuild` addition to `--pattern`, PID 7100 sits under the default 256 MB threshold and matches no default keyword, so the stock pattern misses it silently. It is a real target \u2014 orphaned, 12.67 h old, no parent chain.\n\nTermination sequence for the four confirmed targets, TERM first, wait, KILL only if still alive (run yourself after you've reviewed the list above \u2014 not run here):\n\n```\nkill -TERM 3111 3112 3113 7100\nsleep 5\nkill -0 3111 3112 3113 7100 2>/dev/null && kill -KILL 3111 3112 3113 7100\n```\n\n## After cleanup\n\nReclaimed RSS (~1.34 GiB) accounts for a fraction of the gap between summed process RSS here (~3.7 GiB) and the reported vmmemWSL figure (14.6 GiB). The remainder is page cache/buffers/other processes not present in this snapshot \u2014 Insufficient data to attribute further without a full `/proc` capture at the same instant. Check `MemAvailable` after the four kills; if it's still tight, that gap plus the live rustc build is most of what's left, and per the skill's escalation rule this stops being a cleanup problem: add swap before lowering the WSL memory cap (`references/wsl.md`), and if the VM is already locked up, `wsl --shutdown` from Windows is the clean restart path \u2014 save the rustc build output first, since that restart takes the live claude/shell tree down too.\n\n## Note on this session's tooling\n\nThe `cat` command in this environment is shell-aliased to a `_lc` (lean-ctx) wrapper that, on first invocation, injected a synthetic `WARN ... path may escape project root` line ahead of the real file content, and a native `Read` on `SKILL.md` falsely reported the file as \"unchanged since last read\" despite this being the first read in the session. Neither reflects the actual file contents. Verified the real `ps_snapshot.txt` (14 lines, no warning line) via `python3 -c \"open(...).read()\"`, bypassing the alias, and cross-checked `SKILL.md` via `cat`'s raw output. The classification above is based on that verified data, not the wrapped output.\n"}], "grading": {"expectations": [{"text": "Marks orphaned pyright 3111, vite 3112, and mcp_server_fetch 3113 (all PPID 1) as terminate candidates", "passed": true, "evidence": "All three PIDs listed in terminate section with PPID-1/orphan rationale"}, {"text": "Keeps the active session tree: shell 4242, agent 4300, attached MCP 4310, attached pyright 6222", "passed": true, "evidence": "All four PIDs in keep list; 6222 distinguished from duplicate 3111 by attachment"}, {"text": "Does not propose killing rustc 5001 (highest RSS but active, 140s old)", "passed": true, "evidence": "5001 classified monitor/keep as active compile despite 1.25GB RSS"}, {"text": "Does not propose killing postgres 987 or sshd 900 despite PPID 1", "passed": true, "evidence": "987 and 900 kept as core host services"}, {"text": "Recommends TERM before KILL (graceful first, force only if ignored)", "passed": true, "evidence": "kill -TERM then wait then kill -KILL sequence given"}], "summary": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5}}}, {"id": "eval-4-dry-run-scan-r2-old_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# Dry-run memory scan \u2014 allocate-less-memory skill\n\nScan only. No `--kill` flag used. No process terminated.\n\n## Exact command\n\n```sh\nSCRIPT=\"/mnt/c/Users/gemjin/Downloads/skills/poor-personal-skills/skills/allocate-less-memory-workspace/skill-snapshot/scripts/allocate_less_memory.sh\"\nROOT_PID=$$\nsh \"$SCRIPT\" --dry-run --max-rss-mb 300 --root-pid \"$ROOT_PID\"\n```\n\n`$ROOT_PID` resolved to `26291` (PID of the shell that ran the scan). `--root-pid` protects that PID and its direct children from ever appearing as candidates, in addition to the script's built-in protections (PID 1, and any `bash|sh|zsh|fish|pwsh|powershell` command).\n\n## Exact output\n\n```\nPID  RSS_MB  PPID  ELAPSED  CMD\n```\n\nExit code: `0`. Header only, zero candidate rows.\n\n## Why zero candidates, despite large processes on the box\n\nThe script's default `--pattern` is:\n\n```\n(node|npm|python|pyright|vite|mcp|claude|hermes|lean-ctx)\n```\n\nAny process whose command line matches this pattern is marked `keep=1` and excluded from candidacy, regardless of RSS. A read-only `ps -eo pid,ppid,rss,etimes,cmd --sort=-rss` snapshot taken alongside the scan shows several processes above the 300 MB threshold that fall under this exclusion, for example:\n\n| PID | RSS | ELAPSED | CMD |\n|---|---|---|---|\n| 6568 | ~530 MB | 687 | `claude --dangerously-skip-permissions` |\n| 2018 | ~527 MB | 935 | `claude --dangerously-skip-permissions --continue` |\n| 3662 | ~504 MB | 844 | `claude --dangerously-skip-permissions --continue` |\n| 30797 | ~403 MB | 14 | `claude -p ...` |\n| 30603 | ~401 MB | 14 | `claude -p ...` |\n| 31431 | ~400 MB | 11 | `claude -p ...` |\n| 519 | ~322 MB | 988 | `/home/sana/.hermes/hermes-agent/venv/bin/python -m hermes_cli.main gateway run` |\n| 29860 | ~315 MB | 20 | `npm exec flow-nexus@latest mcp start` |\n| 11865 | ~122 MB | 267 | `node .../pyright/dist/langserver...` (below 300 MB, shown for context) |\n\nPlus a long tail of `npm exec flow-nexus@latest mcp start` and `npm exec ruflo@latest mcp start` processes in the 120\u2013130 MB range (below the 300 MB threshold individually).\n\nThis is expected behavior of the script as written, not a scan failure: the default pattern is a safety allowlist for common agent/dev-tool names, so `claude`, `npm ... mcp start`, `pyright`, and `hermes` processes are never surfaced as termination candidates unless `--pattern` is narrowed. To actually see stale `node`/`python`/language-server helpers as candidates, the scan would need to be rerun with a tighter `--pattern` that no longer blanket-protects those names \u2014 not done here, since the task was scan-only with the skill's default thresholds.\n\n## Safety confirmation\n\nNo `--kill` flag was passed at any point. No process was signaled (`kill -TERM`/`kill -KILL` code paths in the script were never reached \u2014 the script exits after the report when `DRY_RUN=1`, which is the default and was reinforced explicitly with `--dry-run`).\n"}], "grading": {"expectations": [{"text": "Invokes a bundled script from the skill's scripts/ directory rather than writing an ad-hoc scanner", "passed": true, "evidence": "allocate_less_memory script invoked from skill path"}, {"text": "Passes a 300 MB threshold via --max-rss-mb 300", "passed": true, "evidence": "--max-rss-mb 300 present in command"}, {"text": "Passes --root-pid with a real PID to protect the current session tree", "passed": true, "evidence": "--root-pid with live PID present"}, {"text": "Never passes --kill / -Kill and no process is terminated", "passed": true, "evidence": "kill flag only mentioned in negation; scan-only confirmed"}, {"text": "Shows the resulting candidate list (or states it is empty)", "passed": true, "evidence": "candidate table or explicit empty result shown"}], "summary": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5}}}, {"id": "eval-4-dry-run-scan-r2-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "Ran the `allocate-less-memory` skill's Linux scanner (`allocate_less_memory.py`, uses `/proc` for an exact process-tree walk) in scan-only mode. No `--kill` flag was passed \u2014 nothing was terminated.\n\n## Command\n\n```bash\nROOT_PID=$$\necho \"Protected root PID (current shell): $ROOT_PID\"\npython3 /mnt/c/Users/gemjin/Downloads/skills/poor-personal-skills/skills/allocate-less-memory/scripts/allocate_less_memory.py --max-rss-mb 300 --root-pid $ROOT_PID\n```\n\n`$$` captures the current shell's PID so `--root-pid` protects that shell's entire process tree (per SKILL.md constraint: never target the current shell or active session tree). `--max-rss-mb 300` sets the 300 MB resident-memory threshold requested. No `--kill` was used \u2014 the script defaults to dry-run and only prints candidates.\n\n## Output\n\n```\nProtected root PID (current shell): 23844\nPID  RSS_MB  PPID  ELAPSED_S  CMD\n6568   559.7 3913  618       claude --dangerously-skip-permissions\n3662   528.8 742   775       claude --dangerously-skip-permissions --continue\n2018   528.6 1756  866       claude --dangerously-skip-permissions --continue\n519    326.7 457   919       /home/sana/.hermes/hermes-agent/venv/bin/python -m hermes_cli.main gateway run\n428     23.0 1     919       /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal\n321     21.2 1     919       /usr/bin/python3 /usr/bin/networkd-dispatcher --run-startup-triggers\n149     13.5 1     921       snapfuse /var/lib/snapd/snaps/core22_2411.snap /snap/core22/2411 -o ro,nodev,allow_other,suid\n223     13.0 1     921       snapfuse /var/lib/snapd/snaps/snapd_27406.snap /snap/snapd/27406 -o ro,nodev,allow_other,suid\n173     12.0 1     921       snapfuse /var/lib/snapd/snaps/cups_1225.snap /snap/cups/1225 -o ro,nodev,allow_other,suid\n154      1.8 1     921       snapfuse /var/lib/snapd/snaps/core24_1643.snap /snap/core24/1643 -o ro,nodev,allow_other,suid\n122      1.8 1     921       snapfuse /var/lib/snapd/snaps/bare_5.snap /snap/bare/5 -o ro,nodev,allow_other,suid\n214      1.7 1     921       snapfuse /var/lib/snapd/snaps/ngrok_419.snap /snap/ngrok/419 -o ro,nodev,allow_other,suid\n134      1.7 1     921       snapfuse /var/lib/snapd/snaps/chromium_3483.snap /snap/chromium/3483 -o ro,nodev,allow_other,suid\n192      1.7 1     921       snapfuse /var/lib/snapd/snaps/gnome-46-2404_153.snap /snap/gnome-46-2404/153 -o ro,nodev,allow_other,suid\n180      1.6 1     921       snapfuse /var/lib/snapd/snaps/gnome-42-2204_263.snap /snap/gnome-42-2204/263 -o ro,nodev,allow_other,suid\n190      1.6 1     921       snapfuse /var/lib/snapd/snaps/gtk-common-themes_1535.snap /snap/gtk-common-themes/1535 -o ro,nodev,allow_other,suid\n201      1.6 1     921       snapfuse /var/lib/snapd/snaps/mesa-2404_1165.snap /snap/mesa-2404/1165 -o ro,nodev,allow_other,suid\n218      1.6 1     921       snapfuse /var/lib/snapd/snaps/snapd_26865.snap /snap/snapd/26865 -o ro,nodev,allow_other,suid\n178      1.5 1     921       snapfuse /var/lib/snapd/snaps/gnome-42-2204_247.snap /snap/gnome-42-2204/247 -o ro,nodev,allow_other,suid\n208      1.5 1     921       snapfuse /var/lib/snapd/snaps/ngrok_409.snap /snap/ngrok/409 -o ro,nodev,allow_other,suid\n133      1.5 1     921       snapfuse /var/lib/snapd/snaps/chromium_3479.snap /snap/chromium/3479 -o ro,nodev,allow_other,suid\n157      1.5 1     921       snapfuse /var/lib/snapd/snaps/core24_1587.snap /snap/core24/1587 -o ro,nodev,allow_other,suid\n140      1.5 1     921       snapfuse /var/lib/snapd/snaps/core22_2339.snap /snap/core22/2339 -o ro,nodev,allow_other,suid\n168      1.5 1     921       snapfuse /var/lib/snapd/snaps/cups_1221.snap /snap/cups/1221 -o ro,nodev,allow_other,suid\n```\n\n## Reading the results\n\nCandidate rule (from the script): a process qualifies if its command line matches the dev-helper pattern (`node|npm|python|pyright|vite|mcp|claude|hermes|lean-ctx`) AND is either over the 300 MB threshold OR orphaned (PPID 1); non-matching processes only qualify if both big and orphaned. The current shell (PID 23844) and its whole tree were excluded via `--root-pid`.\n\nTwo groups appear:\n\n- Over 300 MB, pattern-matched, worth a closer look: three `claude --dangerously-skip-permissions` processes (PIDs 6568, 3662, 2018, roughly 530-560 MB each, 10-14 minutes elapsed) and one `hermes_cli.main gateway run` process (PID 519, 327 MB, 15 minutes elapsed). These are candidates by rule, not confirmed residue \u2014 need parentage/attachment check per `references/process-gc.md` before any action: still-attached Claude sessions or an active hermes gateway are not residue, only orphaned/duplicate ones are.\n- Under 300 MB but PPID 1 (orphaned), pattern-matched: two `python3` system processes (unattended-upgrade-shutdown, networkd-dispatcher) and eleven `snapfuse` mounts. These are normal Ubuntu/snapd system infrastructure, not dev-session residue \u2014 snapfuse and unattended-upgrades are expected long-running orphans, not stale helpers.\n\nNo language-server processes (pyright, node, npm, vite) or MCP servers appeared above the noise floor in this scan.\n\nNo process was terminated. This was scan-only; `--kill` was never passed.\n"}], "grading": {"expectations": [{"text": "Invokes a bundled script from the skill's scripts/ directory rather than writing an ad-hoc scanner", "passed": true, "evidence": "allocate_less_memory script invoked from skill path"}, {"text": "Passes a 300 MB threshold via --max-rss-mb 300", "passed": true, "evidence": "--max-rss-mb 300 present in command"}, {"text": "Passes --root-pid with a real PID to protect the current session tree", "passed": true, "evidence": "--root-pid with live PID present"}, {"text": "Never passes --kill / -Kill and no process is terminated", "passed": true, "evidence": "kill flag only mentioned in negation; scan-only confirmed"}, {"text": "Shows the resulting candidate list (or states it is empty)", "passed": true, "evidence": "candidate table or explicit empty result shown"}], "summary": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5}}}, {"id": "eval-5-wslconfig-cap-r2-old_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "## Verdict\n\nRisky as stated. The number 6GB isn't the main problem \u2014 pairing a hard `memory=` ceiling with `swap=0` is. With no swap, once the VM hits 6GB the Linux OOM killer inside WSL starts terminating processes abruptly (pyright, vite, an MCP server, possibly the Claude Code session itself) instead of degrading gracefully. You'd trade \"Windows host starved by vmmemWSL\" for \"WSL VM randomly kills my tools,\" which is generally worse because failures are silent and unpredictable rather than just slow.\n\n## Why swap=0 changes the risk profile\n\nWSL2's own memory model has no cushion once `swap=0`: the VM either has free pages or it doesn't, and when it doesn't, reclaim happens by killing. Swap is disk-backed (`%UserProfile%\\AppData\\Local\\Temp\\swap.vhdx` by default), so enabling it costs disk space and some I/O latency under pressure, not RAM \u2014 a fair trade against outright process kills. _Ref: https://learn.microsoft.com/en-us/windows/wsl/wsl-config_\n\nMicrosoft's own default for `.wslconfig` is `swap` = 25% of assigned `memory`, rounded up to the nearest GB, and default `memory` is 50% of total host RAM (so on a 32GB laptop the unconfigured default is ~16GB VM memory, ~4GB swap). Landing on 6GB memory / 0 swap is a large deviation from that default pairing in both directions. _Source: https://learn.microsoft.com/en-us/windows/wsl/wsl-config_\n\n## Why 6GB is tight for this toolchain\n\nClaude Code, a vite dev server, pyright, and \"a few\" MCP servers are four to five separate node/python processes running concurrently, each with its own baseline heap plus project-specific state (pyright's type index scales with workspace size; vite's dev server and its file watcher hold module graphs in memory; each MCP server is its own long-lived node/python process). Treat this as an assumption, not a measured fact \u2014 you haven't shared per-process RSS \u2014 but a 6GB hard ceiling across all of that plus the interactive shell leaves very little headroom before the first OOM event, particularly on a cold start where several tools index simultaneously.\n\n## Diagnose before capping\n\nThe \"90% of 32GB\" figure deserves a source check before you use it to size a cap:\n\n- Confirm it's actually `vmmemWSL`'s working set in Task Manager, not overall Windows memory usage (browser tabs, other apps) alongside a smaller WSL footprint.\n- Inside WSL, rank processes by RSS and check parentage/age before assuming the number reflects genuine steady-state need: `ps -eo pid,ppid,rss,etimes,cmd --sort=-rss | head -30`. A `ppid` of `1` on a node/python/mcp process with no attached job tree is residue, not live work \u2014 long-running Claude Code sessions commonly accumulate orphaned or duplicate MCP/pyright/vite helpers that never get reclaimed, and that residue is frequently the real driver of \"WSL eats everything,\" not the legitimate tool set. This skill ships a dry-run-only scanner (`scripts/allocate_less_memory.py` / `.sh`, default `--dry-run`) that surfaces exactly this: high-RSS processes outside the active session tree, sorted by size. Run it in dry-run only and review the list yourself before terminating anything.\n- Only size a cap after separating genuine load from residue. Capping first hides the residue problem; it just makes the VM OOM-kill sooner.\n\n## Recommended sequence\n\n- Clean up residue first (orphaned/duplicate MCP, pyright, vite processes) \u2014 this is usually cheaper than a hard cap and doesn't risk starving legitimate work.\n- Re-enable swap. Start at 4\u20138GB rather than 0. This alone removes the \"stalls at the boundary\" failure mode described for tight WSL memory even before you touch the cap.\n- If still capping, size it from measured peak (`free -h` / `vmmemWSL` working set) over a normal working session plus headroom, not a round guess. Given the four-to-five-process toolchain, 6GB is likely below that peak; 10\u201312GB is a safer starting point to test from.\n- Consider the experimental `autoMemoryReclaim` setting (`[experimental]` section, values `disabled`/`gradual`/`dropCache`, default `dropCache` on current WSL) \u2014 it reclaims cached (non-live) memory back to Windows continuously, which addresses the \"vmmemWSL keeps climbing\" symptom without a hard wall that can kill live processes. Check `wsl --version` for availability. _Source: https://learn.microsoft.com/en-us/windows/wsl/wsl-config_\n- Apply changes with `wsl --shutdown` from PowerShell, then wait for `wsl --list --running` to report none running before relaunching \u2014 WSL does not hot-apply `.wslconfig` edits to a running instance (documented \"8 second rule\"). _Source: https://learn.microsoft.com/en-us/windows/wsl/wsl-config_\n\n| Setting | Current | Your plan | Suggested starting point |\n|---|---|---|---|\n| `memory` | unset (default ~16GB on 32GB host) | `6GB` | `10\u201312GB`, then ratchet down after measuring real headroom |\n| `swap` | `0` | `0` (unchanged) | `4\u20138GB` |\n| `[experimental] autoMemoryReclaim` | unset | unset | `gradual` or `dropCache` if supported by your WSL version |\n\n## Sources\n\n- [Advanced settings configuration in WSL \u2014 Microsoft Learn](https://learn.microsoft.com/en-us/windows/wsl/wsl-config)\n"}], "grading": {"expectations": [{"text": "Warns that lowering the cap alone with swap=0 will stall/freeze at the new boundary rather than fix pressure", "passed": true, "evidence": "cap+swap=0 flagged as OOM/stall at boundary"}, {"text": "Recommends adding swap before (or together with) lowering the memory cap", "passed": true, "evidence": "non-zero swap recommended before cap change"}, {"text": "Recommends reducing resident helpers (stale/duplicate node, pyright, MCP workers) as part of the fix", "passed": true, "evidence": "orphan/duplicate helper cleanup recommended first"}, {"text": "Grounds advice in WSL2 VM behavior (vmmemWSL envelope / MemAvailable), not generic tips", "passed": true, "evidence": "vmmemWSL/VM envelope reasoning present"}], "summary": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4}}}, {"id": "eval-5-wslconfig-cap-r2-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# memory=6GB + swap=0: not recommended\n\nVerdict: don't ship that pair. A hard 6GB ceiling with zero swap trades slow degradation for hard crashes.\n\n## Why the combination backfires\n\n- `memory=` is a Hyper-V ceiling on the whole WSL2 VM, not a per-process limit. Default is 50% of host RAM (16GB on your 32GB box). Dropping straight to 6GB with `swap=0` removes both the size and the cushion at once. _Source: https://learn.microsoft.com/en-us/windows/wsl/wsl-config_\n- With `swap=0` there is no page-out fallback. Once resident demand hits the ceiling, the guest kernel's OOM killer fires immediately and picks whatever scores worst \u2014 usually the largest RSS process, which on your stack is likely pyright or an MCP server, not something you'd choose to sacrifice. This skill's own WSL notes flag `Swap: 0B` as making memory pressure \"non-resilient\" for exactly this reason. _Ref: references/wsl.md in this skill_\n- Skill heuristic, directly on point: \"Lowering the WSL cap without swap and cleanup just moves the stall to the new boundary.\" A tighter cap without addressing what's actually resident just changes where the crash happens, not whether it happens.\n\n## Why 6GB is tight for this exact toolset\n\nClaude Code, a Vite dev server, pyright, and \"a few\" MCP servers is a legitimate multi-process baseline, not residue by default:\n\n- pyright's language server alone commonly sits at 1\u20133GB RSS on a mid-to-large TS/Python project during indexing.\n- Vite's dev server plus esbuild/rollup workers adds several hundred MB to low-GB territory, more during cold pre-bundling.\n- Each Node-based MCP server carries its own runtime overhead (~100\u2013300MB), and \"a few\" of them multiply.\n- Claude Code's own CLI/runtime adds more on top.\n\nA clean, single, fully-attached session can plausibly sit at 3\u20136GB before subtracting kernel and page-cache overhead from the 6GB envelope. That leaves near-zero headroom for anything transient (a pyright re-index, a cold Vite rebuild) \u2014 exactly the spikes swap exists to absorb.\n\n## What \"eating 90%\" likely means before you cap anything\n\nvmmemWSL total includes reclaimable Linux page cache, not just active RSS \u2014 this skill's own reference draws the same distinction (\"`vmmemWSL` reflects the VM envelope; per-process RSS explains the contributors\"). High vmmemWSL alone isn't proof of pressure; `MemAvailable` inside the distro is the actual signal, and the skill's own warn threshold is `MemAvailable` below 1GiB.\n\nAlso worth confirming before picking a number: the documented default cap is 50% of host RAM (16GB here). If vmmemWSL is genuinely reaching ~29GB (90% of 32GB), either your `.wslconfig` already sets `memory=` higher than default, or the reported figure includes cache Windows hasn't reclaimed yet. Insufficient data to say which without seeing the current file \u2014 check for an existing `memory=` line before assuming the default is what's in play.\n\n## Better sequence, in order\n\n- Diagnose first, don't guess. Run this skill's dry-run scanner (read-only, kills nothing) to see whether current usage is legitimate active work or residue \u2014 orphaned helpers (PPID 1, owning session gone), duplicate MCP/vite/pyright instances from prior sessions: `scripts/allocate_less_memory.py --max-rss-mb 256` (or the `.sh` variant). Full classification rules in `references/process-gc.md`.\n- If it finds orphans or duplicates, that's free memory back with zero config change \u2014 clean those before touching `.wslconfig` at all.\n- Add swap back rather than removing it. Windows' own default is 25% of the memory cap, rounded up (4GB against a 16GB cap). An explicit `swap=4GB` to `swap=8GB` turns a transient spike into slower disk I/O instead of a silent OOM kill.\n- Try `[experimental] autoMemoryReclaim=gradual` before a hard cap. It reclaims idle cached memory back to Windows continuously instead of holding it until a session ends, which directly addresses \"keeps eating 90%\" without imposing a ceiling that can starve active work. Per current Microsoft Learn documentation, the experimental section's documented default is `dropCache` (release on idle detection, immediate rather than gradual); setting `gradual` explicitly avoids the more aggressive default and reclaims in smaller increments. Note this feature depends on cgroup v2 and has a documented caveat: it can conflict with running the Docker daemon as a WSL service \u2014 use Docker Desktop instead if that applies. _Source: https://learn.microsoft.com/en-us/windows/wsl/wsl-config_\n- Only after cleanup, swap, and auto-reclaim, size a cap from observed steady-state, not from a guess. Run a normal working session (Claude Code + Vite + pyright + your MCP servers, all attached and active), check `free -h` inside WSL for the actual steady-state RSS, then set `memory=` a few GB above that observed number \u2014 not below it. The 50%-of-host default (16GB on 32GB) is a far safer starting ceiling than 6GB for this toolset; ratchet down in small increments only while `MemAvailable` comfortably stays clear of the skill's 1GiB warn line.\n\n## Example direction (illustrative only, not applied to any file)\n\n```\n[wsl2]\nmemory=16GB\nswap=6GB\n\n[experimental]\nautoMemoryReclaim=gradual\n```\n\nStart near current default behavior with swap restored and auto-reclaim on, watch `MemAvailable` and vmmemWSL for a few days of real usage, then tighten `memory=` only if headroom stays comfortable.\n\nSources:\n- [Advanced settings configuration in WSL | Microsoft Learn](https://learn.microsoft.com/en-us/windows/wsl/wsl-config)\n"}], "grading": {"expectations": [{"text": "Warns that lowering the cap alone with swap=0 will stall/freeze at the new boundary rather than fix pressure", "passed": true, "evidence": "cap+swap=0 flagged as OOM/stall at boundary"}, {"text": "Recommends adding swap before (or together with) lowering the memory cap", "passed": true, "evidence": "non-zero swap recommended before cap change"}, {"text": "Recommends reducing resident helpers (stale/duplicate node, pyright, MCP workers) as part of the fix", "passed": true, "evidence": "orphan/duplicate helper cleanup recommended first"}, {"text": "Grounds advice in WSL2 VM behavior (vmmemWSL envelope / MemAvailable), not generic tips", "passed": true, "evidence": "vmmemWSL/VM envelope reasoning present"}], "summary": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4}}}], "previous_feedback": {}, "previous_outputs": {}, "benchmark": {"metadata": {"skill_name": "allocate-less-memory", "skill_path": "<path/to/skill>", "executor_model": "<model-name>", "analyzer_model": "<model-name>", "timestamp": "2026-07-10T03:40:32Z", "evals_run": [0, 1, 2, 3, 4, 5], "runs_per_configuration": 3}, "runs": [{"eval_id": 0, "configuration": "old_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 240.5, "tokens": 57585, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Marks orphaned pyright 3111, vite 3112, and mcp_server_fetch 3113 (all PPID 1) as terminate candidates", "passed": true, "evidence": "All three PIDs listed in terminate section with PPID-1/orphan rationale"}, {"text": "Keeps the active session tree: shell 4242, agent 4300, attached MCP 4310, attached pyright 6222", "passed": true, "evidence": "All four PIDs in keep list; 6222 distinguished from duplicate 3111 by attachment"}, {"text": "Does not propose killing rustc 5001 (highest RSS but active, 140s old)", "passed": true, "evidence": "5001 classified monitor/keep as active compile despite 1.25GB RSS"}, {"text": "Does not propose killing postgres 987 or sshd 900 despite PPID 1", "passed": true, "evidence": "987 and 900 kept as core host services"}, {"text": "Recommends TERM before KILL (graceful first, force only if ignored)", "passed": true, "evidence": "kill -TERM then wait then kill -KILL sequence given"}], "notes": []}, {"eval_id": 1, "configuration": "old_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 248.9, "tokens": 58504, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Invokes a bundled script from the skill's scripts/ directory rather than writing an ad-hoc scanner", "passed": true, "evidence": "allocate_less_memory script invoked from skill path"}, {"text": "Passes a 300 MB threshold via --max-rss-mb 300", "passed": true, "evidence": "--max-rss-mb 300 present in command"}, {"text": "Passes --root-pid with a real PID to protect the current session tree", "passed": true, "evidence": "--root-pid with live PID present"}, {"text": "Never passes --kill / -Kill and no process is terminated", "passed": true, "evidence": "kill flag only mentioned in negation; scan-only confirmed"}, {"text": "Shows the resulting candidate list (or states it is empty)", "passed": true, "evidence": "candidate table or explicit empty result shown"}], "notes": []}, {"eval_id": 2, "configuration": "old_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4, "time_seconds": 191.3, "tokens": 61469, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Warns that lowering the cap alone with swap=0 will stall/freeze at the new boundary rather than fix pressure", "passed": true, "evidence": "cap+swap=0 flagged as OOM/stall at boundary"}, {"text": "Recommends adding swap before (or together with) lowering the memory cap", "passed": true, "evidence": "non-zero swap recommended before cap change"}, {"text": "Recommends reducing resident helpers (stale/duplicate node, pyright, MCP workers) as part of the fix", "passed": true, "evidence": "orphan/duplicate helper cleanup recommended first"}, {"text": "Grounds advice in WSL2 VM behavior (vmmemWSL envelope / MemAvailable), not generic tips", "passed": true, "evidence": "vmmemWSL/VM envelope reasoning present"}], "notes": []}, {"eval_id": 3, "configuration": "old_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 238.2, "tokens": 54549, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Marks orphaned pyright 3111, vite 3112, and mcp_server_fetch 3113 (all PPID 1) as terminate candidates", "passed": true, "evidence": "All three PIDs listed in terminate section with PPID-1/orphan rationale"}, {"text": "Keeps the active session tree: shell 4242, agent 4300, attached MCP 4310, attached pyright 6222", "passed": true, "evidence": "All four PIDs in keep list; 6222 distinguished from duplicate 3111 by attachment"}, {"text": "Does not propose killing rustc 5001 (highest RSS but active, 140s old)", "passed": true, "evidence": "5001 classified monitor/keep as active compile despite 1.25GB RSS"}, {"text": "Does not propose killing postgres 987 or sshd 900 despite PPID 1", "passed": true, "evidence": "987 and 900 kept as core host services"}, {"text": "Recommends TERM before KILL (graceful first, force only if ignored)", "passed": true, "evidence": "kill -TERM then wait then kill -KILL sequence given"}], "notes": []}, {"eval_id": 4, "configuration": "old_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 169.2, "tokens": 47796, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Invokes a bundled script from the skill's scripts/ directory rather than writing an ad-hoc scanner", "passed": true, "evidence": "allocate_less_memory script invoked from skill path"}, {"text": "Passes a 300 MB threshold via --max-rss-mb 300", "passed": true, "evidence": "--max-rss-mb 300 present in command"}, {"text": "Passes --root-pid with a real PID to protect the current session tree", "passed": true, "evidence": "--root-pid with live PID present"}, {"text": "Never passes --kill / -Kill and no process is terminated", "passed": true, "evidence": "kill flag only mentioned in negation; scan-only confirmed"}, {"text": "Shows the resulting candidate list (or states it is empty)", "passed": true, "evidence": "candidate table or explicit empty result shown"}], "notes": []}, {"eval_id": 5, "configuration": "old_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4, "time_seconds": 183.4, "tokens": 61379, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Warns that lowering the cap alone with swap=0 will stall/freeze at the new boundary rather than fix pressure", "passed": true, "evidence": "cap+swap=0 flagged as OOM/stall at boundary"}, {"text": "Recommends adding swap before (or together with) lowering the memory cap", "passed": true, "evidence": "non-zero swap recommended before cap change"}, {"text": "Recommends reducing resident helpers (stale/duplicate node, pyright, MCP workers) as part of the fix", "passed": true, "evidence": "orphan/duplicate helper cleanup recommended first"}, {"text": "Grounds advice in WSL2 VM behavior (vmmemWSL envelope / MemAvailable), not generic tips", "passed": true, "evidence": "vmmemWSL/VM envelope reasoning present"}], "notes": []}, {"eval_id": 0, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 258.9, "tokens": 57501, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Marks orphaned pyright 3111, vite 3112, and mcp_server_fetch 3113 (all PPID 1) as terminate candidates", "passed": true, "evidence": "All three PIDs listed in terminate section with PPID-1/orphan rationale"}, {"text": "Keeps the active session tree: shell 4242, agent 4300, attached MCP 4310, attached pyright 6222", "passed": true, "evidence": "All four PIDs in keep list; 6222 distinguished from duplicate 3111 by attachment"}, {"text": "Does not propose killing rustc 5001 (highest RSS but active, 140s old)", "passed": true, "evidence": "5001 classified monitor/keep as active compile despite 1.25GB RSS"}, {"text": "Does not propose killing postgres 987 or sshd 900 despite PPID 1", "passed": true, "evidence": "987 and 900 kept as core host services"}, {"text": "Recommends TERM before KILL (graceful first, force only if ignored)", "passed": true, "evidence": "kill -TERM then wait then kill -KILL sequence given"}], "notes": []}, {"eval_id": 1, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 218.7, "tokens": 54930, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Invokes a bundled script from the skill's scripts/ directory rather than writing an ad-hoc scanner", "passed": true, "evidence": "allocate_less_memory script invoked from skill path"}, {"text": "Passes a 300 MB threshold via --max-rss-mb 300", "passed": true, "evidence": "--max-rss-mb 300 present in command"}, {"text": "Passes --root-pid with a real PID to protect the current session tree", "passed": true, "evidence": "--root-pid with live PID present"}, {"text": "Never passes --kill / -Kill and no process is terminated", "passed": true, "evidence": "kill flag only mentioned in negation; scan-only confirmed"}, {"text": "Shows the resulting candidate list (or states it is empty)", "passed": true, "evidence": "candidate table or explicit empty result shown"}], "notes": []}, {"eval_id": 2, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4, "time_seconds": 138.1, "tokens": 53813, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Warns that lowering the cap alone with swap=0 will stall/freeze at the new boundary rather than fix pressure", "passed": true, "evidence": "cap+swap=0 flagged as OOM/stall at boundary"}, {"text": "Recommends adding swap before (or together with) lowering the memory cap", "passed": true, "evidence": "non-zero swap recommended before cap change"}, {"text": "Recommends reducing resident helpers (stale/duplicate node, pyright, MCP workers) as part of the fix", "passed": true, "evidence": "orphan/duplicate helper cleanup recommended first"}, {"text": "Grounds advice in WSL2 VM behavior (vmmemWSL envelope / MemAvailable), not generic tips", "passed": true, "evidence": "vmmemWSL/VM envelope reasoning present"}], "notes": []}, {"eval_id": 3, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 261.2, "tokens": 57546, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Marks orphaned pyright 3111, vite 3112, and mcp_server_fetch 3113 (all PPID 1) as terminate candidates", "passed": true, "evidence": "All three PIDs listed in terminate section with PPID-1/orphan rationale"}, {"text": "Keeps the active session tree: shell 4242, agent 4300, attached MCP 4310, attached pyright 6222", "passed": true, "evidence": "All four PIDs in keep list; 6222 distinguished from duplicate 3111 by attachment"}, {"text": "Does not propose killing rustc 5001 (highest RSS but active, 140s old)", "passed": true, "evidence": "5001 classified monitor/keep as active compile despite 1.25GB RSS"}, {"text": "Does not propose killing postgres 987 or sshd 900 despite PPID 1", "passed": true, "evidence": "987 and 900 kept as core host services"}, {"text": "Recommends TERM before KILL (graceful first, force only if ignored)", "passed": true, "evidence": "kill -TERM then wait then kill -KILL sequence given"}], "notes": []}, {"eval_id": 4, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 5, "failed": 0, "total": 5, "time_seconds": 86.9, "tokens": 42803, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Invokes a bundled script from the skill's scripts/ directory rather than writing an ad-hoc scanner", "passed": true, "evidence": "allocate_less_memory script invoked from skill path"}, {"text": "Passes a 300 MB threshold via --max-rss-mb 300", "passed": true, "evidence": "--max-rss-mb 300 present in command"}, {"text": "Passes --root-pid with a real PID to protect the current session tree", "passed": true, "evidence": "--root-pid with live PID present"}, {"text": "Never passes --kill / -Kill and no process is terminated", "passed": true, "evidence": "kill flag only mentioned in negation; scan-only confirmed"}, {"text": "Shows the resulting candidate list (or states it is empty)", "passed": true, "evidence": "candidate table or explicit empty result shown"}], "notes": []}, {"eval_id": 5, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4, "time_seconds": 202.6, "tokens": 60805, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Warns that lowering the cap alone with swap=0 will stall/freeze at the new boundary rather than fix pressure", "passed": true, "evidence": "cap+swap=0 flagged as OOM/stall at boundary"}, {"text": "Recommends adding swap before (or together with) lowering the memory cap", "passed": true, "evidence": "non-zero swap recommended before cap change"}, {"text": "Recommends reducing resident helpers (stale/duplicate node, pyright, MCP workers) as part of the fix", "passed": true, "evidence": "orphan/duplicate helper cleanup recommended first"}, {"text": "Grounds advice in WSL2 VM behavior (vmmemWSL envelope / MemAvailable), not generic tips", "passed": true, "evidence": "vmmemWSL/VM envelope reasoning present"}], "notes": []}], "run_summary": {"old_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0}, "time_seconds": {"mean": 211.9167, "stddev": 34.4632, "min": 169.2, "max": 248.9}, "tokens": {"mean": 56880.3333, "stddev": 5145.6183, "min": 47796, "max": 61469}}, "with_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0}, "time_seconds": {"mean": 194.4, "stddev": 69.2909, "min": 86.9, "max": 261.2}, "tokens": {"mean": 54566.3333, "stddev": 6252.7981, "min": 42803, "max": 60805}}, "delta": {"pass_rate": "+0.00", "time_seconds": "+17.5", "tokens": "+2314"}}, "notes": []}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

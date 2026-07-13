@@ -1,0 +1,564 @@
+{
+  "metadata": {
+    "skill_name": "allocate-less-memory",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-07-10T03:40:32Z",
+    "evals_run": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 0,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 240.5,
+        "tokens": 57585,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Marks orphaned pyright 3111, vite 3112, and mcp_server_fetch 3113 (all PPID 1) as terminate candidates",
+          "passed": true,
+          "evidence": "All three PIDs listed in terminate section with PPID-1/orphan rationale"
+        },
+        {
+          "text": "Keeps the active session tree: shell 4242, agent 4300, attached MCP 4310, attached pyright 6222",
+          "passed": true,
+          "evidence": "All four PIDs in keep list; 6222 distinguished from duplicate 3111 by attachment"
+        },
+        {
+          "text": "Does not propose killing rustc 5001 (highest RSS but active, 140s old)",
+          "passed": true,
+          "evidence": "5001 classified monitor/keep as active compile despite 1.25GB RSS"
+        },
+        {
+          "text": "Does not propose killing postgres 987 or sshd 900 despite PPID 1",
+          "passed": true,
+          "evidence": "987 and 900 kept as core host services"
+        },
+        {
+          "text": "Recommends TERM before KILL (graceful first, force only if ignored)",
+          "passed": true,
+          "evidence": "kill -TERM then wait then kill -KILL sequence given"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 248.9,
+        "tokens": 58504,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Invokes a bundled script from the skill's scripts/ directory rather than writing an ad-hoc scanner",
+          "passed": true,
+          "evidence": "allocate_less_memory script invoked from skill path"
+        },
+        {
+          "text": "Passes a 300 MB threshold via --max-rss-mb 300",
+          "passed": true,
+          "evidence": "--max-rss-mb 300 present in command"
+        },
+        {
+          "text": "Passes --root-pid with a real PID to protect the current session tree",
+          "passed": true,
+          "evidence": "--root-pid with live PID present"
+        },
+        {
+          "text": "Never passes --kill / -Kill and no process is terminated",
+          "passed": true,
+          "evidence": "kill flag only mentioned in negation; scan-only confirmed"
+        },
+        {
+          "text": "Shows the resulting candidate list (or states it is empty)",
+          "passed": true,
+          "evidence": "candidate table or explicit empty result shown"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 191.3,
+        "tokens": 61469,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Warns that lowering the cap alone with swap=0 will stall/freeze at the new boundary rather than fix pressure",
+          "passed": true,
+          "evidence": "cap+swap=0 flagged as OOM/stall at boundary"
+        },
+        {
+          "text": "Recommends adding swap before (or together with) lowering the memory cap",
+          "passed": true,
+          "evidence": "non-zero swap recommended before cap change"
+        },
+        {
+          "text": "Recommends reducing resident helpers (stale/duplicate node, pyright, MCP workers) as part of the fix",
+          "passed": true,
+          "evidence": "orphan/duplicate helper cleanup recommended first"
+        },
+        {
+          "text": "Grounds advice in WSL2 VM behavior (vmmemWSL envelope / MemAvailable), not generic tips",
+          "passed": true,
+          "evidence": "vmmemWSL/VM envelope reasoning present"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 238.2,
+        "tokens": 54549,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Marks orphaned pyright 3111, vite 3112, and mcp_server_fetch 3113 (all PPID 1) as terminate candidates",
+          "passed": true,
+          "evidence": "All three PIDs listed in terminate section with PPID-1/orphan rationale"
+        },
+        {
+          "text": "Keeps the active session tree: shell 4242, agent 4300, attached MCP 4310, attached pyright 6222",
+          "passed": true,
+          "evidence": "All four PIDs in keep list; 6222 distinguished from duplicate 3111 by attachment"
+        },
+        {
+          "text": "Does not propose killing rustc 5001 (highest RSS but active, 140s old)",
+          "passed": true,
+          "evidence": "5001 classified monitor/keep as active compile despite 1.25GB RSS"
+        },
+        {
+          "text": "Does not propose killing postgres 987 or sshd 900 despite PPID 1",
+          "passed": true,
+          "evidence": "987 and 900 kept as core host services"
+        },
+        {
+          "text": "Recommends TERM before KILL (graceful first, force only if ignored)",
+          "passed": true,
+          "evidence": "kill -TERM then wait then kill -KILL sequence given"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 169.2,
+        "tokens": 47796,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Invokes a bundled script from the skill's scripts/ directory rather than writing an ad-hoc scanner",
+          "passed": true,
+          "evidence": "allocate_less_memory script invoked from skill path"
+        },
+        {
+          "text": "Passes a 300 MB threshold via --max-rss-mb 300",
+          "passed": true,
+          "evidence": "--max-rss-mb 300 present in command"
+        },
+        {
+          "text": "Passes --root-pid with a real PID to protect the current session tree",
+          "passed": true,
+          "evidence": "--root-pid with live PID present"
+        },
+        {
+          "text": "Never passes --kill / -Kill and no process is terminated",
+          "passed": true,
+          "evidence": "kill flag only mentioned in negation; scan-only confirmed"
+        },
+        {
+          "text": "Shows the resulting candidate list (or states it is empty)",
+          "passed": true,
+          "evidence": "candidate table or explicit empty result shown"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 183.4,
+        "tokens": 61379,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Warns that lowering the cap alone with swap=0 will stall/freeze at the new boundary rather than fix pressure",
+          "passed": true,
+          "evidence": "cap+swap=0 flagged as OOM/stall at boundary"
+        },
+        {
+          "text": "Recommends adding swap before (or together with) lowering the memory cap",
+          "passed": true,
+          "evidence": "non-zero swap recommended before cap change"
+        },
+        {
+          "text": "Recommends reducing resident helpers (stale/duplicate node, pyright, MCP workers) as part of the fix",
+          "passed": true,
+          "evidence": "orphan/duplicate helper cleanup recommended first"
+        },
+        {
+          "text": "Grounds advice in WSL2 VM behavior (vmmemWSL envelope / MemAvailable), not generic tips",
+          "passed": true,
+          "evidence": "vmmemWSL/VM envelope reasoning present"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 0,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 258.9,
+        "tokens": 57501,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Marks orphaned pyright 3111, vite 3112, and mcp_server_fetch 3113 (all PPID 1) as terminate candidates",
+          "passed": true,
+          "evidence": "All three PIDs listed in terminate section with PPID-1/orphan rationale"
+        },
+        {
+          "text": "Keeps the active session tree: shell 4242, agent 4300, attached MCP 4310, attached pyright 6222",
+          "passed": true,
+          "evidence": "All four PIDs in keep list; 6222 distinguished from duplicate 3111 by attachment"
+        },
+        {
+          "text": "Does not propose killing rustc 5001 (highest RSS but active, 140s old)",
+          "passed": true,
+          "evidence": "5001 classified monitor/keep as active compile despite 1.25GB RSS"
+        },
+        {
+          "text": "Does not propose killing postgres 987 or sshd 900 despite PPID 1",
+          "passed": true,
+          "evidence": "987 and 900 kept as core host services"
+        },
+        {
+          "text": "Recommends TERM before KILL (graceful first, force only if ignored)",
+          "passed": true,
+          "evidence": "kill -TERM then wait then kill -KILL sequence given"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 218.7,
+        "tokens": 54930,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Invokes a bundled script from the skill's scripts/ directory rather than writing an ad-hoc scanner",
+          "passed": true,
+          "evidence": "allocate_less_memory script invoked from skill path"
+        },
+        {
+          "text": "Passes a 300 MB threshold via --max-rss-mb 300",
+          "passed": true,
+          "evidence": "--max-rss-mb 300 present in command"
+        },
+        {
+          "text": "Passes --root-pid with a real PID to protect the current session tree",
+          "passed": true,
+          "evidence": "--root-pid with live PID present"
+        },
+        {
+          "text": "Never passes --kill / -Kill and no process is terminated",
+          "passed": true,
+          "evidence": "kill flag only mentioned in negation; scan-only confirmed"
+        },
+        {
+          "text": "Shows the resulting candidate list (or states it is empty)",
+          "passed": true,
+          "evidence": "candidate table or explicit empty result shown"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 138.1,
+        "tokens": 53813,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Warns that lowering the cap alone with swap=0 will stall/freeze at the new boundary rather than fix pressure",
+          "passed": true,
+          "evidence": "cap+swap=0 flagged as OOM/stall at boundary"
+        },
+        {
+          "text": "Recommends adding swap before (or together with) lowering the memory cap",
+          "passed": true,
+          "evidence": "non-zero swap recommended before cap change"
+        },
+        {
+          "text": "Recommends reducing resident helpers (stale/duplicate node, pyright, MCP workers) as part of the fix",
+          "passed": true,
+          "evidence": "orphan/duplicate helper cleanup recommended first"
+        },
+        {
+          "text": "Grounds advice in WSL2 VM behavior (vmmemWSL envelope / MemAvailable), not generic tips",
+          "passed": true,
+          "evidence": "vmmemWSL/VM envelope reasoning present"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 261.2,
+        "tokens": 57546,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Marks orphaned pyright 3111, vite 3112, and mcp_server_fetch 3113 (all PPID 1) as terminate candidates",
+          "passed": true,
+          "evidence": "All three PIDs listed in terminate section with PPID-1/orphan rationale"
+        },
+        {
+          "text": "Keeps the active session tree: shell 4242, agent 4300, attached MCP 4310, attached pyright 6222",
+          "passed": true,
+          "evidence": "All four PIDs in keep list; 6222 distinguished from duplicate 3111 by attachment"
+        },
+        {
+          "text": "Does not propose killing rustc 5001 (highest RSS but active, 140s old)",
+          "passed": true,
+          "evidence": "5001 classified monitor/keep as active compile despite 1.25GB RSS"
+        },
+        {
+          "text": "Does not propose killing postgres 987 or sshd 900 despite PPID 1",
+          "passed": true,
+          "evidence": "987 and 900 kept as core host services"
+        },
+        {
+          "text": "Recommends TERM before KILL (graceful first, force only if ignored)",
+          "passed": true,
+          "evidence": "kill -TERM then wait then kill -KILL sequence given"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 86.9,
+        "tokens": 42803,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Invokes a bundled script from the skill's scripts/ directory rather than writing an ad-hoc scanner",
+          "passed": true,
+          "evidence": "allocate_less_memory script invoked from skill path"
+        },
+        {
+          "text": "Passes a 300 MB threshold via --max-rss-mb 300",
+          "passed": true,
+          "evidence": "--max-rss-mb 300 present in command"
+        },
+        {
+          "text": "Passes --root-pid with a real PID to protect the current session tree",
+          "passed": true,
+          "evidence": "--root-pid with live PID present"
+        },
+        {
+          "text": "Never passes --kill / -Kill and no process is terminated",
+          "passed": true,
+          "evidence": "kill flag only mentioned in negation; scan-only confirmed"
+        },
+        {
+          "text": "Shows the resulting candidate list (or states it is empty)",
+          "passed": true,
+          "evidence": "candidate table or explicit empty result shown"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 5,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 202.6,
+        "tokens": 60805,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Warns that lowering the cap alone with swap=0 will stall/freeze at the new boundary rather than fix pressure",
+          "passed": true,
+          "evidence": "cap+swap=0 flagged as OOM/stall at boundary"
+        },
+        {
+          "text": "Recommends adding swap before (or together with) lowering the memory cap",
+          "passed": true,
+          "evidence": "non-zero swap recommended before cap change"
+        },
+        {
+          "text": "Recommends reducing resident helpers (stale/duplicate node, pyright, MCP workers) as part of the fix",
+          "passed": true,
+          "evidence": "orphan/duplicate helper cleanup recommended first"
+        },
+        {
+          "text": "Grounds advice in WSL2 VM behavior (vmmemWSL envelope / MemAvailable), not generic tips",
+          "passed": true,
+          "evidence": "vmmemWSL/VM envelope reasoning present"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "old_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 211.9167,
+        "stddev": 34.4632,
+        "min": 169.2,
+        "max": 248.9
+      },
+      "tokens": {
+        "mean": 56880.3333,
+        "stddev": 5145.6183,
+        "min": 47796,
+        "max": 61469
+      }
+    },
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 194.4,
+        "stddev": 69.2909,
+        "min": 86.9,
+        "max": 261.2
+      },
+      "tokens": {
+        "mean": 54566.3333,
+        "stddev": 6252.7981,
+        "min": 42803,
+        "max": 60805
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.00",
+      "time_seconds": "+17.5",
+      "tokens": "+2314"
+    }
+  },
+  "notes": []
+}

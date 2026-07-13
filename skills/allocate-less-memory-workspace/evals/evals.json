@@ -1,0 +1,46 @@
+{
+  "skill_name": "allocate-less-memory",
+  "evals": [
+    {
+      "id": 0,
+      "name": "orphan-triage",
+      "prompt": "My Claude Code session in WSL froze and the whole VM is crawling. vmmemWSL sits at 14.6 GB with a 16 GB cap. I captured a process snapshot right before it locked up — it's at <FIXTURE>, columns are PID PPID RSS_KB ELAPSED_S CMD. My interactive shell is PID 4242 and the live agent session is PID 4300. Tell me exactly which processes to terminate, which to keep and why, and the commands you'd run — but do NOT kill anything yourself, this is planning only.",
+      "expected_output": "Ranked terminate list = orphaned helpers 3111 (duplicate pyright), 3112 (vite), 3113 (mcp), 7100 (esbuild); keep 4242/4300/4310/6222 (active tree), 5001 (active build despite highest RSS), 987/900/1 (host services); TERM before KILL.",
+      "assertions": [
+        "Marks orphaned pyright 3111, vite 3112, and mcp_server_fetch 3113 (all PPID 1) as terminate candidates",
+        "Keeps the active session tree: shell 4242, agent 4300, attached MCP 4310, attached pyright 6222",
+        "Does not propose killing rustc 5001 (highest RSS but active, 140s old) ",
+        "Does not propose killing postgres 987 or sshd 900 despite PPID 1",
+        "Recommends TERM before KILL (graceful first, force only if ignored)"
+      ],
+      "files": ["fixtures/ps_snapshot.txt"]
+    },
+    {
+      "id": 1,
+      "name": "dry-run-scan",
+      "prompt": "I think old dev servers and language servers are eating RAM on this Linux box. Using the allocate-less-memory skill's tooling, run a dry-run scan for stale helpers with a 300 MB threshold, protecting the process tree of your current shell. Show me the exact command and its output. Under no circumstances terminate anything — scan only.",
+      "expected_output": "Runs bundled script (sh or py) with --max-rss-mb 300 and --root-pid <shell pid>, no --kill; reports candidate table.",
+      "assertions": [
+        "Invokes a bundled script from the skill's scripts/ directory rather than writing an ad-hoc scanner",
+        "Passes a 300 MB threshold via --max-rss-mb 300",
+        "Passes --root-pid with a real PID to protect the current session tree",
+        "Never passes --kill / -Kill and no process is terminated",
+        "Shows the resulting candidate list (or states it is empty)"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "wslconfig-cap",
+      "prompt": "WSL keeps eating like 90% of my 32GB laptop, so I'm about to set memory=6GB in .wslconfig so vmmemWSL physically can't grow. Good idea? My daily setup inside WSL: Claude Code, vite dev server, pyright, and a few MCP servers. Current config has swap=0.",
+      "expected_output": "Warns that lowering the cap with swap=0 just moves the freeze to the new boundary; recommends adding swap first plus trimming resident helpers; mentions the WSL freeze signature / wsl --shutdown recovery.",
+      "assertions": [
+        "Warns that lowering the cap alone with swap=0 will stall/freeze at the new boundary rather than fix pressure",
+        "Recommends adding swap before (or together with) lowering the memory cap",
+        "Recommends reducing resident helpers (stale/duplicate node, pyright, MCP workers) as part of the fix",
+        "Grounds advice in WSL2 VM behavior (vmmemWSL envelope / MemAvailable), not generic tips"
+      ],
+      "files": []
+    }
+  ]
+}

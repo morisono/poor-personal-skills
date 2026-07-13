@@ -1,0 +1,1 @@
+[{"query": "claude code just froze again and htop shows like 12 node processes eating 400mb each, most from sessions i closed hours ago. wsl is crawling", "should_trigger": true}, {"query": "trying to reduce memory usage of my rust program - should I use Box, Rc, or an arena allocator here", "should_trigger": false}]

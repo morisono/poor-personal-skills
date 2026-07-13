@@ -1,0 +1,27 @@
+{
+  "skill_name": "allocate-less-memory",
+  "description": "Diagnose and relieve RAM pressure from stale dev-session processes on WSL, Linux, and Windows. Use whenever the user mentions out-of-memory or OOM kills, a frozen or sluggish agent/WSL session, vmmemWSL growing toward its cap, orphaned or duplicate helper processes (node, npm, python, pyright, MCP servers, dev servers) outliving closed sessions, or asks which processes to kill to free RAM \u2014 even if they never say \"memory\". Covers process-tree scanning, bounded TERM\u2192KILL cleanup with bundled dry-run scripts, and WSL cap/swap tuning. Not for fixing memory leaks or reducing allocations inside the user's own code, and not for disk space (use free-up-space).",
+  "results": [
+    {
+      "query": "claude code just froze again and htop shows like 12 node processes eating 400mb each, most from sessions i closed hours ago. wsl is crawling",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "trying to reduce memory usage of my rust program - should I use Box, Rc, or an arena allocator here",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    }
+  ],
+  "summary": {
+    "total": 2,
+    "passed": 1,
+    "failed": 1
+  }
+}

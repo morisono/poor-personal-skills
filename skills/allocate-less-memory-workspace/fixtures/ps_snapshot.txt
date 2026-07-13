@@ -1,0 +1,14 @@
+PID   PPID  RSS_KB   ELAPSED_S  CMD
+1     0     12480    864000     /sbin/init
+900   1     9216     863900     sshd: /usr/sbin/sshd -D
+987   1     266240   863800     postgres: 15/main: checkpointer
+4242  900   53248    31200      fish
+4300  4242  419840   9400       claude
+4310  4300  184320   9350       node /home/dev/.mcp/lean-ctx/server.js --stdio
+6222  4310  245760   9100       node /usr/lib/node_modules/pyright/dist/langserver.index.js --stdio
+3111  1     506880   26800      node /usr/lib/node_modules/pyright/dist/langserver.index.js --stdio
+3112  1     368640   30500      node /home/dev/proj/node_modules/.bin/vite --port 5173
+3113  1     317440   28200      python3 -m mcp_server_fetch
+7100  1     209920   45600      /home/dev/.cache/esbuild/bin/esbuild --service
+4501  900   49152    7300       bash
+5001  4501  1281024  140        rustc --crate-name mylib --edition 2021 src/lib.rs -O

@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Warns that lowering the cap alone with swap=0 will stall/freeze at the new boundary rather than fix pressure",
+      "passed": true,
+      "evidence": "cap+swap=0 flagged as OOM/stall at boundary"
+    },
+    {
+      "text": "Recommends adding swap before (or together with) lowering the memory cap",
+      "passed": true,
+      "evidence": "non-zero swap recommended before cap change"
+    },
+    {
+      "text": "Recommends reducing resident helpers (stale/duplicate node, pyright, MCP workers) as part of the fix",
+      "passed": true,
+      "evidence": "orphan/duplicate helper cleanup recommended first"
+    },
+    {
+      "text": "Grounds advice in WSL2 VM behavior (vmmemWSL envelope / MemAvailable), not generic tips",
+      "passed": true,
+      "evidence": "vmmemWSL/VM envelope reasoning present"
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 4,
+    "failed": 0,
+    "total": 4
+  }
+}

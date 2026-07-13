@@ -1,0 +1,171 @@
+{
+  "skill_name": "allocate-less-memory",
+  "description": "Diagnose and relieve RAM pressure from stale dev-session processes on WSL, Linux, and Windows. Use whenever the user mentions out-of-memory or OOM kills, a frozen or sluggish agent/WSL session, vmmemWSL growing toward its cap, orphaned or duplicate helper processes (node, npm, python, pyright, MCP servers, dev servers) outliving closed sessions, or asks which processes to kill to free RAM \u2014 even if they never say \"memory\". Covers process-tree scanning, bounded TERM\u2192KILL cleanup with bundled dry-run scripts, and WSL cap/swap tuning. Not for fixing memory leaks or reducing allocations inside the user's own code, and not for disk space (use free-up-space).",
+  "results": [
+    {
+      "query": "there are a bunch of pyright and mcp server processes with PPID 1 hanging around after I close my editor. safe to kill? which ones",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "here's my ps aux output, which of these can I kill to free memory? don't want to nuke my tmux or editor",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "WSL\u304c\u4f55\u5ea6\u3082\u56fa\u307e\u308b\u3002vmmemWSL\u304c\u30e1\u30e2\u30ea\u3092\u98df\u3044\u5c3d\u304f\u3057\u3066\u308b\u306e\u3067\u5e38\u99d0\u30d7\u30ed\u30bb\u30b9\u3092\u6e1b\u3089\u3057\u305f\u3044",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "claude code just froze again and htop shows like 12 node processes eating 400mb each, most from sessions i closed hours ago. wsl is crawling",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "vmmemWSL is at 14.8GB out of my 16GB cap in Task Manager and everything is sluggish. what do I do",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "linux box with 8gb ram, long claude session + vite dev server + docker, MemAvailable is 200MB. help me get RAM back without losing my session",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "should i lower memory= in .wslconfig to 8GB so vmmem stops eating my laptop? swap is 0 right now",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "my agent session locked up the whole WSL vm this afternoon, second time this week. how do I stop this happening \u2014 i have a ton of helper processes running",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "every time i run the coding agent overnight it leaves zombie npm dev servers behind and by morning the machine is unresponsive. want a cleanup step",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "my python script uses 12GB loading this CSV with pandas, how can I allocate less memory",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "OOM killer took out my postgres in WSL while claude was indexing the repo. how do I keep memory headroom during agent sessions",
+      "should_trigger": true,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": false
+    },
+    {
+      "query": "C: drive is nearly full and my WSL vhdx is 200GB, what can I delete",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "how do I find a memory leak in my node express app, the heap keeps growing under load until it crashes",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "my docker container keeps getting OOMKilled in kubernetes, how should I set memory limits and requests",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "how much RAM do I need to run a local 70B llama model with 4-bit quantization",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "valgrind reports 'definitely lost' blocks in my C program, walk me through fixing them",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "chrome has 40 processes using tons of CPU on my windows desktop, give me a powershell one-liner to kill them all",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "trying to reduce memory usage of my rust program \u2014 should I use Box, Rc, or an arena allocator here",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "is wsl --shutdown before windows update better than just rebooting?",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    },
+    {
+      "query": "my cargo build has been pinning all cores at 100% for 20 minutes, machine feels slow, is that normal",
+      "should_trigger": false,
+      "trigger_rate": 0.0,
+      "triggers": 0,
+      "runs": 1,
+      "pass": true
+    }
+  ],
+  "summary": {
+    "total": 20,
+    "passed": 10,
+    "failed": 10
+  }
+}

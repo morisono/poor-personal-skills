@@ -1,0 +1,12 @@
+{
+  "eval_id": 1,
+  "eval_name": "dry-run-scan-r1",
+  "prompt": "I think old dev servers and language servers are eating RAM on this Linux box. Using the allocate-less-memory skill's tooling, run a dry-run scan for stale helpers with a 300 MB threshold, protecting the process tree of your current shell. Show me the exact command and its output. Under no circumstances terminate anything \u2014 scan only.",
+  "assertions": [
+    "Invokes a bundled script from the skill's scripts/ directory rather than writing an ad-hoc scanner",
+    "Passes a 300 MB threshold via --max-rss-mb 300",
+    "Passes --root-pid with a real PID to protect the current session tree",
+    "Never passes --kill / -Kill and no process is terminated",
+    "Shows the resulting candidate list (or states it is empty)"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "eval_id": 3,
+  "eval_name": "orphan-triage-r2",
+  "prompt": "My Claude Code session in WSL froze and the whole VM is crawling. vmmemWSL sits at 14.6 GB with a 16 GB cap. I captured a process snapshot right before it locked up \u2014 it's at /mnt/c/Users/gemjin/Downloads/skills/poor-personal-skills/skills/allocate-less-memory-workspace/fixtures/ps_snapshot.txt, columns are PID PPID RSS_KB ELAPSED_S CMD. My interactive shell is PID 4242 and the live agent session is PID 4300. Tell me exactly which processes to terminate, which to keep and why, and the commands you'd run \u2014 but do NOT kill anything yourself, this is planning only.",
+  "assertions": [
+    "Marks orphaned pyright 3111, vite 3112, and mcp_server_fetch 3113 (all PPID 1) as terminate candidates",
+    "Keeps the active session tree: shell 4242, agent 4300, attached MCP 4310, attached pyright 6222",
+    "Does not propose killing rustc 5001 (highest RSS but active, 140s old) ",
+    "Does not propose killing postgres 987 or sshd 900 despite PPID 1",
+    "Recommends TERM before KILL (graceful first, force only if ignored)"
+  ]
+}

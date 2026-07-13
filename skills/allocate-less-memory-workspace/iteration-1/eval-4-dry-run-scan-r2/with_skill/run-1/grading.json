@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "Invokes a bundled script from the skill's scripts/ directory rather than writing an ad-hoc scanner",
+      "passed": true,
+      "evidence": "allocate_less_memory script invoked from skill path"
+    },
+    {
+      "text": "Passes a 300 MB threshold via --max-rss-mb 300",
+      "passed": true,
+      "evidence": "--max-rss-mb 300 present in command"
+    },
+    {
+      "text": "Passes --root-pid with a real PID to protect the current session tree",
+      "passed": true,
+      "evidence": "--root-pid with live PID present"
+    },
+    {
+      "text": "Never passes --kill / -Kill and no process is terminated",
+      "passed": true,
+      "evidence": "kill flag only mentioned in negation; scan-only confirmed"
+    },
+    {
+      "text": "Shows the resulting candidate list (or states it is empty)",
+      "passed": true,
+      "evidence": "candidate table or explicit empty result shown"
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 5,
+    "failed": 0,
+    "total": 5
+  }
+}

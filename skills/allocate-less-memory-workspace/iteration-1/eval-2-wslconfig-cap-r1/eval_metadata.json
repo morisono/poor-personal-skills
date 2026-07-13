@@ -1,0 +1,11 @@
+{
+  "eval_id": 2,
+  "eval_name": "wslconfig-cap-r1",
+  "prompt": "WSL keeps eating like 90% of my 32GB laptop, so I'm about to set memory=6GB in .wslconfig so vmmemWSL physically can't grow. Good idea? My daily setup inside WSL: Claude Code, vite dev server, pyright, and a few MCP servers. Current config has swap=0.",
+  "assertions": [
+    "Warns that lowering the cap alone with swap=0 will stall/freeze at the new boundary rather than fix pressure",
+    "Recommends adding swap before (or together with) lowering the memory cap",
+    "Recommends reducing resident helpers (stale/duplicate node, pyright, MCP workers) as part of the fix",
+    "Grounds advice in WSL2 VM behavior (vmmemWSL envelope / MemAvailable), not generic tips"
+  ]
+}
